@@ -3,13 +3,14 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Attendance Report</title>
+<title>Attendance v9</title>
 <style>
-/* styles.css — green complete · blue fixed · amber missing · orange overtime · grey off */
+/* teal = from database · green complete · blue fixed · amber missing · orange overtime · grey off */
 :root{
   --bg:#f6f7fa; --line:#e6e9f0; --line2:#f0f2f7; --txt:#2b3040; --mut:#8890a3; --soft:#f9fafc;
   --blue:#4f7cf7; --blue-s:#eaf0ff; --green:#2f9d66; --green-s:#e9f8f1; --amber:#b87708; --amber-s:#fef4e3;
-  --orange:#e8702f; --orange-s:#fdefe8; --red:#e25555; --grey-s:#f1f3f7; --namew:190px; --sumw:96px; font-size:14px;
+  --orange:#e8702f; --orange-s:#fdefe8; --red:#e25555; --grey-s:#f1f3f7; --teal:#0e7c8a; --teal-s:#e3f5f7;
+  --namew:190px; font-size:14px;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--txt);font-family:'Segoe UI',Inter,system-ui,sans-serif}
@@ -18,8 +19,6 @@ small,.hint{color:var(--mut);font-size:12px}
 .hidden{display:none!important} .grow{flex:1}
 input,select,textarea{font:inherit;font-size:13px;color:var(--txt);background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 9px}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
-
-/* top bar */
 .top{display:flex;align-items:center;gap:18px;padding:10px 20px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50}
 .brand{font-size:15px;display:flex;gap:8px;align-items:baseline}
 .ver{font-size:10.5px;background:var(--blue-s);color:var(--blue);border-radius:8px;padding:1px 6px;font-weight:600}
@@ -38,8 +37,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 .menu{position:absolute;right:0;top:110%;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 30px rgba(40,50,80,.15);min-width:260px;overflow:hidden;z-index:60}
 .menu button{display:block;width:100%;text-align:left;border:0;background:none;padding:10px 14px;cursor:pointer;font:inherit;font-size:13px}
 .menu button:hover{background:var(--blue-s);color:var(--blue)}
-
-/* layout */
 .view{padding:16px 20px}
 .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
@@ -50,19 +47,15 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 .chip.warn{background:var(--amber-s);border-color:#f3dcae;color:var(--amber)}
 .chip.warn.on{background:var(--amber);color:#fff;border-color:var(--amber)}
 .pill{font-size:12px;background:var(--blue-s);color:var(--blue);border-radius:10px;padding:3px 9px}
-.pill.good{background:var(--green-s);color:var(--green)} .pill.bad{background:#fdecec;color:var(--red)}
+.pill.good{background:var(--green-s);color:var(--green)} .pill.bad{background:#fdecec;color:var(--red)} .pill.teal{background:var(--teal-s);color:var(--teal)}
 .legend{display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--mut)} .legend.pad{margin:0 0 10px}
 .sw{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.sw.db{background:var(--teal-s);border:1px solid #b5e1e7}
 .sw.ok{background:var(--green-s);border:1px solid #bfe6d2} .sw.edit{background:var(--blue-s);border:1px solid #c7d6fb}
-.sw.miss{background:var(--amber-s);border:1px solid #f3dcae} .sw.off{background:var(--grey-s);border:1px solid var(--line)}
-.sw.dot{width:8px;height:8px;border-radius:50%;background:var(--blue)}
-
-/* database bar on the dashboard */
+.sw.miss{background:var(--amber-s);border:1px solid #f3dcae} .sw.dot{width:8px;height:8px;border-radius:50%;background:var(--blue)}
 .dbbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 16px;margin-bottom:8px;font-size:13px}
 .dbbar b{color:var(--txt)}
-
-/* grid: Y = person, X = date — full width */
-.gridwrap{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:auto;max-height:calc(100vh - 230px)}
+.gridwrap{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:auto;max-height:calc(100vh - 240px)}
 table.grid{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
 .grid th,.grid td{border-bottom:1px solid var(--line2)}
 .grid thead th{position:sticky;top:0;z-index:5;background:#fff;font-size:11.5px;font-weight:600;padding:7px 2px;text-align:center;border-bottom:1px solid var(--line)}
@@ -73,37 +66,39 @@ table.grid{width:100%;border-collapse:separate;border-spacing:0;table-layout:fix
 .grid .nm small{display:block;font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .grid td{padding:3px;vertical-align:middle;text-align:center} .grid td.sun{background:#fdf9f9}
 .grid tbody tr:hover td,.grid tbody tr:hover .nm{background:#fbfcfe}
-.grid .tot{position:sticky;z-index:4;background:#fff;width:var(--sumw);text-align:right;padding:6px 10px;font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums;border-left:1px solid var(--line)}
-.grid .tot.w{right:var(--sumw)} .grid .tot.o{right:0;color:var(--orange)}
-.grid thead .tot{z-index:6} .grid thead .tot small{font-weight:400} .grid .tot.zero{color:#c4cad6;font-weight:400}
+/* summary columns frozen on the right (positions set inline) */
+.grid .tot{position:sticky;z-index:4;background:#fff;text-align:right;padding:6px 8px;font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums}
+.grid .tot.first{border-left:2px solid var(--line)}
+.grid .tot.cnt{text-align:center;color:#5a6378}
+.grid .tot.o{color:var(--orange)}
+.grid thead .tot{z-index:6;text-align:center;font-size:11px;line-height:1.2} .grid thead .tot small{font-weight:400}
+.grid .tot.zero{color:#c4cad6;font-weight:400}
 .grid tfoot td{position:sticky;bottom:0;background:var(--soft);font-weight:700;border-top:1px solid var(--line)}
-.grid tfoot .nm{background:var(--soft)}
+.grid tfoot .nm,.grid tfoot .tot{background:var(--soft)}
 .grid td.pick-td{cursor:pointer}
 .grid td.pick-td:hover .cell,.grid td.pick-td:hover .box{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue-s)}
-
-/* check cells */
 .cell{position:relative;border-radius:7px;padding:5px 4px;border:1px solid transparent;line-height:1.35;min-height:38px;display:flex;flex-direction:column;justify-content:center}
 .cell .t{font-size:11.5px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cell .t .q{color:var(--red)} .cell .t .nx{font-size:9.5px;color:var(--mut);font-weight:500}
 .cell .s{font-size:10.5px;color:var(--mut);white-space:nowrap} .cell .s .ot{color:var(--orange);font-weight:600}
 .cell .lab{font-size:10px;text-transform:uppercase;letter-spacing:.3px;color:var(--mut)}
+.cell.db{background:var(--teal-s);border-color:#c9eaee} .cell.db .t{color:var(--teal)}
+.cell.db::after{content:'☁';position:absolute;top:1px;right:4px;font-size:10px;color:var(--teal)}
 .cell.ok{background:var(--green-s)} .cell.ok .t{color:var(--green)}
 .cell.edit{background:var(--blue-s)} .cell.edit .t{color:var(--blue)}
 .cell.miss{background:var(--amber-s)} .cell.miss .t{color:#7c5206}
 .cell.off{background:var(--grey-s)} .cell.off .t{color:var(--mut);font-weight:500}
 .cell.none{background:#fff;border:1px dashed var(--line)} .cell.none .t{color:#b9c0cd;font-weight:500;font-size:11px}
 .cell.unsaved::after{content:'';position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--blue)}
-
-/* dashboard boxes */
-.box{display:flex;align-items:center;justify-content:center;height:24px;width:100%;max-width:34px;margin:auto;border-radius:6px;font-size:11px;font-weight:700;font-style:normal;border:1px solid transparent}
-.legend .box{display:inline-flex;width:20px;height:20px;margin-right:5px}
+.box{display:flex;align-items:center;justify-content:center;height:24px;width:100%;max-width:34px;margin:auto;border-radius:6px;font-size:10.5px;font-weight:700;font-style:normal;border:1px solid transparent}
+.legend .box{display:inline-flex;width:22px;height:20px;margin-right:5px}
 .box.ok{background:var(--green-s);color:var(--green);border-color:#cfeede}
 .box.edit{background:var(--blue-s);color:var(--blue);border-color:#cfdcfc}
 .box.ot{background:var(--orange-s);color:var(--orange);border-color:#f6c9ae}
 .box.off{background:var(--grey-s);color:var(--mut);border-color:var(--line)}
+.box.sick{background:#fdf0f5;color:#c0447a;border-color:#f3cde0}
+.box.abs{background:#fdecec;color:var(--red);border-color:#f3c6c6}
 .box.none{background:#fff;color:#c4cad6;border:1px dashed var(--line)}
-
-/* filters */
 .filters{background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 16px;margin-bottom:8px}
 .frow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0} .frow+.frow{border-top:1px dashed var(--line2)}
 .flab{width:56px;font-size:12px;font-weight:600;color:var(--mut)}
@@ -112,8 +107,6 @@ table.grid{width:100%;border-collapse:separate;border-spacing:0;table-layout:fix
 .fc:hover{border-color:#c7d6fb} .fc.on{background:var(--blue);border-color:var(--blue);color:#fff}
 .showing{margin:4px 2px 10px;font-size:12.5px;color:var(--mut)} .showing b{color:var(--txt)}
 .showing a{color:var(--blue);cursor:pointer;margin-left:8px;text-decoration:underline}
-
-/* settings */
 table.data{width:100%;border-collapse:collapse;font-size:12.5px}
 .data th{background:var(--soft);text-align:left;padding:8px 10px;font-weight:600;border-bottom:1px solid var(--line)}
 .data td{padding:6px 10px;border-bottom:1px solid var(--line2)}
@@ -123,19 +116,20 @@ table.data{width:100%;border-collapse:collapse;font-size:12.5px}
 .sched label:has(input:checked),.pick label:has(input:checked){background:var(--blue-s);border-color:#c7d6fb;color:var(--blue)}
 .sched input,.pick input{margin:0}
 .rules{margin:0;padding-left:18px;line-height:1.8;font-size:13px}
-
-/* edit panel */
-.panel{position:fixed;top:0;right:0;bottom:0;width:430px;background:#fff;box-shadow:-10px 0 34px rgba(40,50,80,.16);z-index:80;display:flex;flex-direction:column}
+.panel{position:fixed;top:0;right:0;bottom:0;width:440px;background:#fff;box-shadow:-10px 0 34px rgba(40,50,80,.16);z-index:80;display:flex;flex-direction:column}
 .phead{display:flex;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line)}
 .pbody{padding:16px 18px;overflow:auto;flex:1}
 .pfoot{display:flex;gap:8px;justify-content:flex-end;padding:14px 18px;border-top:1px solid var(--line)}
 .fld{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--mut);margin-bottom:14px}
+.src{font-size:12px;border-radius:8px;padding:7px 10px;margin-bottom:14px;line-height:1.5}
+.src.db{background:var(--teal-s);color:var(--teal)} .src.file{background:var(--soft);color:var(--mut)}
 .io{border:1px solid var(--line);border-left:3px solid var(--blue);border-radius:10px;padding:10px 12px;margin-bottom:10px;background:var(--soft)}
 .io.bad{border-left-color:var(--amber);background:var(--amber-s)}
 .io .r{display:flex;gap:8px;align-items:flex-end}
 .io .r label{flex:1;display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--mut)} .io .r input{width:100%}
 .io .del{border:0;background:none;cursor:pointer;color:var(--red);font-size:15px;padding-bottom:6px}
-.io .x{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:12px;color:var(--mut)}
+.io .x{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;font-size:12px;color:var(--mut);flex-wrap:wrap}
+.io .x label{display:inline-flex;gap:5px;align-items:center;cursor:pointer}
 .io .nd{color:var(--blue);font-weight:600} .io .quick{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .sum{border:1px solid var(--line);border-radius:10px;padding:12px;margin:14px 0}
 .sum .l{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px} .sum .l.o b{color:var(--orange)}
@@ -143,25 +137,21 @@ table.data{width:100%;border-collapse:collapse;font-size:12.5px}
 .raw{font-size:12px;color:var(--mut);border-top:1px solid var(--line);padding-top:10px}
 .raw span{display:inline-block;background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:2px 7px;margin:4px 4px 0 0}
 .shade{position:fixed;inset:0;background:rgba(30,38,60,.25);z-index:70}
-
-/* modal / tooltip / toast */
 .modal{position:fixed;inset:0;background:rgba(30,38,60,.35);z-index:120;display:flex;align-items:center;justify-content:center}
 .mbox{background:#fff;border-radius:14px;padding:22px;width:min(520px,94vw)} .mbox p,.mbox li{font-size:13px;line-height:1.55}
 .mfoot{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
 .tip{position:fixed;z-index:200;background:#2b3040;color:#fff;border-radius:10px;padding:9px 12px;font-size:12px;pointer-events:none;min-width:180px}
 .tip .h{font-weight:600;margin-bottom:4px} .tip .l{display:flex;justify-content:space-between;gap:14px;opacity:.9}
-.tip .l.o{color:#ffb98f;opacity:1}
+.tip .l.o{color:#ffb98f;opacity:1} .tip .l.c{color:#9ee6ef;opacity:1}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#2b3040;color:#fff;border-radius:10px;padding:10px 18px;font-size:13px;z-index:300;max-width:90vw}
-
 </style>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
 
-<!-- ============ TOP BAR ============ -->
 <header class="top">
-  <div class="brand">🕐 <b>Attendance</b> <span class="ver">v1.1</span> <small id="period">no file yet</small></div>
+  <div class="brand">🕐 <b>Attendance</b> <span class="ver">v9</span> <small id="period">no file yet</small></div>
   <nav class="tabs">
     <button class="tab on" data-v="check">1 · Check</button>
     <button class="tab" data-v="dash">2 · Dashboard</button>
@@ -173,7 +163,7 @@ table.data{width:100%;border-collapse:collapse;font-size:12.5px}
       <button id="btnExport" class="btn">Export ▾</button>
       <div id="expMenu" class="menu hidden">
         <button data-x="daily">Daily list from database (.xlsx)</button>
-        <button data-x="person">Hours per person from database (.xlsx)</button>
+        <button data-x="person">Summary per person from database (.xlsx)</button>
         <button data-x="backup">Backup of Check work (.json)</button>
       </div>
     </div>
@@ -186,30 +176,35 @@ table.data{width:100%;border-collapse:collapse;font-size:12.5px}
   <section id="drop" class="drop">
     <div class="big">📄</div>
     <h2>Drop the machine export here</h2>
-    <p>Or use <b>＋ Add file</b> at the top. The file stays in this browser.</p>
+    <p>Or use <b>＋ Add file</b> at the top. Days already in the database are shown from the database, not from the file.</p>
   </section>
   <section id="checkPanel" class="hidden">
-    <div class="bar">
+    <div class="dbbar">
+      <button id="ckRefresh" class="btn">⟳ Refresh from database</button>
+      <span id="ckDb">Loading the database…</span>
+      <div class="grow"></div>
       <button id="chipMiss" class="chip warn"><b id="nMiss">0</b> days with a missing time</button>
-      <span class="hint">Click any cell to edit it. <b>??</b> = the machine has no tap.</span>
+    </div>
+    <div class="bar">
+      <span class="hint">Click any cell to edit. <b>☁</b> days are in the database — editing them changes the database right away.</span>
       <div class="grow"></div>
       <div class="legend">
-        <span><i class="sw ok"></i>Complete</span><span><i class="sw edit"></i>Fixed by you</span>
-        <span><i class="sw miss"></i>Missing time</span><span><i class="sw off"></i>Day off / leave</span>
-        <span><i class="sw dot"></i>Not in the database yet</span>
+        <span><i class="sw db"></i>☁ In the database</span>
+        <span><i class="sw ok"></i>From the file</span><span><i class="sw edit"></i>Fixed by you</span>
+        <span><i class="sw miss"></i>Missing time</span><span><i class="sw dot"></i>Not saved yet</span>
       </div>
     </div>
     <div id="checkGrid" class="gridwrap"></div>
   </section>
 </main>
 
-<!-- ============ 2 · DASHBOARD (reads the database only) ============ -->
+<!-- ============ 2 · DASHBOARD (database only) ============ -->
 <main id="v-dash" class="view hidden">
   <div class="dbbar">
     <button id="dbRefresh" class="btn primary big">⟳ Refresh</button>
     <span id="dbInfo">Not loaded yet</span>
     <div class="grow"></div>
-    <span class="hint">Shows only days saved from <b>1 · Check</b>. Editing here saves straight to the database.</span>
+    <span class="hint">Shows only what is in the database. Editing here saves straight to the database.</span>
   </div>
   <div class="filters">
     <div class="frow"><span class="flab">Period</span><div id="fPeriod" class="chips"></div></div>
@@ -221,8 +216,9 @@ table.data{width:100%;border-collapse:collapse;font-size:12.5px}
   </div>
   <p id="showing" class="showing"></p>
   <div class="legend pad">
-    <span><i class="box ok">✓</i>Complete</span><span><i class="box ot">✓</i>With overtime</span>
-    <span><i class="box edit">✓</i>Fixed by hand</span><span><i class="box off">L</i>Leave / off / sick</span>
+    <span><i class="box ok">✓</i>Work day</span><span><i class="box ot">✓</i>With overtime</span>
+    <span><i class="box off">O</i>Day off</span><span><i class="box off">AL</i>Annual leave</span>
+    <span><i class="box sick">S</i>Sick</span><span><i class="box abs">A</i>Absent</span>
     <span><i class="box none">＋</i>Not saved</span>
     <span class="hint">Hover for detail · click any box to edit</span>
   </div>
@@ -243,12 +239,13 @@ table.data{width:100%;border-collapse:collapse;font-size:12.5px}
   <div class="card">
     <h3>How it works</h3>
     <ul class="rules">
-      <li>A tap is shown on the date it happened. <b>??</b> = the machine has no tap.</li>
-      <li><b>Working hours</b> = total time on the clock, overtime included.</li>
-      <li><b>Overtime</b> = the part after the end of the schedule worked, from the first minute. Early never counts.</li>
-      <li><b>Day off / holiday</b>: every worked minute is overtime. <b>Overtime allowed</b> not ticked: overtime 0.</li>
-      <li>Blue dot in Check = new or changed since the last save. <b>Save to database</b> sends only those; the same person + date is updated, never duplicated.</li>
-      <li>Days with <b>??</b> are never sent. The <b>Dashboard</b> shows only the database — press <b>⟳ Refresh</b> for the latest.</li>
+      <li><b>The database is the truth.</b> If a person + date is already in the database, Check shows the database version (☁) and ignores the file for that day.</li>
+      <li>Days not in the database come from the file. Fix them, then <b>Save to database</b>.</li>
+      <li>Editing a ☁ day (in Check or Dashboard) changes the database immediately.</li>
+      <li>A day can be <b>Work day, Day off, Annual leave, Sick or Absent</b>, with or without in/out times. The Dashboard counts each in days.</li>
+      <li><b>In is on the previous day</b> / <b>Out is on the next day</b> let one in/out cross midnight; the real dates are shown.</li>
+      <li><b>Working hours</b> = total time on the clock, overtime included. <b>Overtime</b> = the part after the schedule end, from minute 0. Early never counts.</li>
+      <li><b>Day off</b>: every worked minute is overtime. <b>Overtime allowed</b> not ticked: overtime 0.</li>
     </ul>
   </div>
   <div class="card">
@@ -278,6 +275,7 @@ table.data{width:100%;border-collapse:collapse;font-size:12.5px}
     <button id="pClose" class="btn">✕</button>
   </div>
   <div class="pbody">
+    <div id="pSrc" class="src"></div>
     <label class="fld">This day is <select id="pType"></select></label>
     <div id="pSched" class="fld"></div>
     <div id="pRows"></div>
@@ -293,10 +291,9 @@ table.data{width:100%;border-collapse:collapse;font-size:12.5px}
 </aside>
 <div id="shade" class="shade hidden"></div>
 
-<!-- ============ ASK: overlapping file touches fixed days ============ -->
 <div id="ask" class="modal hidden">
   <div class="mbox">
-    <h3>This file changes days you already fixed</h3>
+    <h3>This file changes days you fixed (not yet saved)</h3>
     <div id="askBody"></div>
     <div class="mfoot">
       <button id="askCancel" class="btn">Cancel</button>
@@ -311,62 +308,49 @@ table.data{width:100%;border-collapse:collapse;font-size:12.5px}
 
 <script>
 /* ============================================================================
- * engine.js — the maths only. No screen code in here.
+ * ENGINE — the maths only.
  *   file -> taps -> in/out pairs (same calendar date only) -> working + overtime
- * A tap is shown on the date it happened. Nothing moves to another day unless
- * the user ticks "out is on the next day".
  * ==========================================================================*/
 const Engine = (() => {
   const DUP_MIN = 10;                 // two taps within 10 minutes = one finger press
   const IO_OUT  = 2;                  // machine I/O code that means "clock out"
-
-  /* the 4 schedules (editable in Settings) */
   const DEFAULT_SHIFTS = [
     { id: 'REG', name: 'Regular', start: '09:00', end: '16:00' },
     { id: 'S1',  name: 'Shift 1', start: '16:00', end: '00:00' },
     { id: 'S2',  name: 'Shift 2', start: '22:00', end: '06:00' },
     { id: 'S3',  name: 'Shift 3', start: '00:00', end: '08:00' },
   ];
-  const DAY_TYPES = { WORK: 'Work day', OFF: 'Day off / holiday', LEAVE: 'Leave', SICK: 'Sick', ABSENT: 'Absent' };
+  /* the 5 remarks (keys stay the same, so rows already in the database keep working) */
+  const DAY_TYPES = { WORK: 'Work day', OFF: 'Day off', LEAVE: 'Annual leave', SICK: 'Sick', ABSENT: 'Absent' };
 
-  /* small helpers */
   const pad = n => String(n).padStart(2, '0');
-  const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;   // Date -> "2026-09-15"
-  const hm  = d => d ? `${pad(d.getHours())}:${pad(d.getMinutes())}` : '';            // Date -> "08:26"
+  const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const hm  = d => d ? `${pad(d.getHours())}:${pad(d.getMinutes())}` : '';
   const toMin = s => { const [h, m] = String(s).split(':').map(Number); return h * 60 + m; };
   const addDays = (s, n) => { const d = new Date(s + 'T00:00:00'); d.setDate(d.getDate() + n); return ymd(d); };
   const at = (date, time) => new Date(`${date}T${time}:00`);
-  const shiftLen = sh => ((toMin(sh.end) - toMin(sh.start) + 1440) % 1440) || 1440;    // minutes, handles midnight
-
-  /** "ricky liman" -> "Ricky Liman" */
+  const shiftLen = sh => ((toMin(sh.end) - toMin(sh.start) + 1440) % 1440) || 1440;
   const camelName = raw => String(raw ?? '').trim().toLowerCase().replace(/\s+/g, ' ')
     .replace(/(^|[\s'\-.])([a-z\u00e0-\u024f])/g, (_, sep, ch) => sep + ch.toUpperCase());
-
-  /** "2026-09" -> "September 2026" */
   const monthLabel = ym => { const [y, m] = ym.split('-').map(Number);
     return new Date(y, m - 1, 1).toLocaleDateString('en', { month: 'long', year: 'numeric' }); };
 
-  /** "15-09-2026 08:26:12" -> Date (also Excel numbers and ISO text) */
   function parseStamp(v) {
     if (v instanceof Date) return v;
-    if (typeof v === 'number') {
-      const o = XLSX.SSF.parse_date_code(v);
-      return o ? new Date(o.y, o.m - 1, o.d, o.H, o.M, Math.floor(o.S)) : null;
-    }
+    if (typeof v === 'number') { const o = XLSX.SSF.parse_date_code(v);
+      return o ? new Date(o.y, o.m - 1, o.d, o.H, o.M, Math.floor(o.S)) : null; }
     const s = String(v).trim();
-    let m = s.match(/^(\d{2})-(\d{2})-(\d{4})[ T](\d{2}):(\d{2}):(\d{2})$/);             // machine format
+    let m = s.match(/^(\d{2})-(\d{2})-(\d{4})[ T](\d{2}):(\d{2}):(\d{2})$/);
     if (m) return new Date(+m[3], +m[2] - 1, +m[1], +m[4], +m[5], +m[6]);
-    m = s.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);                          // ISO fallback
+    m = s.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
     if (m) return new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]);
-    const d = new Date(s);
-    return isNaN(d) ? null : d;
+    const d = new Date(s); return isNaN(d) ? null : d;
   }
 
-  /* ---------------- 1. read the file ---------------- */
   function parseWorkbook(buffer) {
     const wb = XLSX.read(buffer, { type: 'array', cellDates: true });
     const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, blankrows: false, raw: true });
-    let h = rows.findIndex(r => r.some(c => /tanggal scan/i.test(String(c))));           // find the header row
+    let h = rows.findIndex(r => r.some(c => /tanggal scan/i.test(String(c))));
     if (h < 0) h = rows.findIndex(r => r.some(c => /^nama$/i.test(String(c).trim())));
     if (h < 0) throw new Error('Header row not found — is this the machine export?');
     const head = rows[h].map(c => String(c ?? '').trim().toLowerCase());
@@ -381,30 +365,24 @@ const Engine = (() => {
       let ts = C.stamp >= 0 ? parseStamp(r[C.stamp]) : null;
       if (!ts && C.date >= 0) ts = parseStamp(`${r[C.date]} ${r[C.time] ?? '00:00:00'}`);
       if (!ts) continue;
-      scans.push({
-        pin: String(r[C.pin] ?? '').trim() || name.toUpperCase(),
-        nip: String(r[C.nip] ?? '').trim(),
-        name: camelName(name), jabatan: camelName(r[C.jab] ?? ''),
-        dept: String(r[C.dep] ?? '').trim(), tugas: String(r[C.tug] ?? '').trim(),
-        io: r[C.io] != null && r[C.io] !== '' ? Number(r[C.io]) : null,                  // 1 in, 2 out
-        ts,
-      });
+      scans.push({ pin: String(r[C.pin] ?? '').trim() || name.toUpperCase(), nip: String(r[C.nip] ?? '').trim(),
+        name: camelName(name), jabatan: camelName(r[C.jab] ?? ''), dept: String(r[C.dep] ?? '').trim(),
+        tugas: String(r[C.tug] ?? '').trim(), io: r[C.io] != null && r[C.io] !== '' ? Number(r[C.io]) : null, ts });
     }
     if (!scans.length) throw new Error('No readable rows found.');
     return scans.sort((a, b) => a.ts - b.ts);
   }
 
-  /* ---------------- 2. adding a file that overlaps ---------------- */
+  /** A tap already loaded (person + exact time) is skipped; only new taps are added. */
   function analyseImport(oldScans, newScans, overrides = {}) {
-    const key = s => `${s.pin}|${s.ts.getTime()}`;                                       // identity of one tap
+    const key = s => `${s.pin}|${s.ts.getTime()}`;
     const have = new Set(oldScans.map(key));
     const fresh = newScans.filter(s => !have.has(key(s)));
     const touched = new Set(fresh.map(s => `${s.pin}|${ymd(s.ts)}`));
-    const conflicts = Object.keys(overrides).filter(k => touched.has(k)).sort();         // fixed days that would change
+    const conflicts = Object.keys(overrides).filter(k => touched.has(k)).sort();
     return { total: newScans.length, fresh, repeated: newScans.length - fresh.length, conflicts };
   }
 
-  /* ---------------- 3. people ---------------- */
   function deriveEmployees(scans) {
     const map = new Map();
     for (const s of scans) {
@@ -416,10 +394,9 @@ const Engine = (() => {
     return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  /** First-time default only: nearest schedule start; any schedule used on 2+ days is added. */
   function defaultSchedules(emps, sessions, shifts) {
     for (const e of emps) {
-      if (e.shiftIds.length) continue;                                                   // never overwrite a choice
+      if (e.shiftIds.length) continue;
       const count = {};
       for (const s of sessions) if (s.pin === e.pin && s.inTs) {
         const m = s.inTs.getHours() * 60 + s.inTs.getMinutes();
@@ -434,7 +411,6 @@ const Engine = (() => {
     return emps;
   }
 
-  /* ---------------- 4. taps -> in/out, inside one calendar date ---------------- */
   function buildSessions(scans) {
     const byDay = new Map();
     for (const s of scans) { const k = `${s.pin}|${ymd(s.ts)}`; if (!byDay.has(k)) byDay.set(k, []); byDay.get(k).push(s); }
@@ -442,7 +418,7 @@ const Engine = (() => {
     for (const [k, taps] of byDay) {
       const [pin, date] = k.split('|');
       taps.sort((a, b) => a.ts - b.ts);
-      const clean = [];                                                                  // drop double presses
+      const clean = [];
       for (const t of taps) {
         const prev = clean[clean.length - 1];
         if (prev && (t.ts - prev.ts) / 60000 < DUP_MIN) { if (t.io === IO_OUT) clean[clean.length - 1] = t; continue; }
@@ -451,31 +427,30 @@ const Engine = (() => {
       let open = null;
       const add = (a, b) => out.push(makeSession(pin, date, a?.ts || null, b?.ts || null));
       for (const t of clean) {
-        if (!open) { if (t.io === IO_OUT) add(null, t); else open = t; }                 // an "out" never starts a pair
+        if (!open) { if (t.io === IO_OUT) add(null, t); else open = t; }
         else { add(open, t); open = null; }
       }
       if (open) add(open, null);
     }
     return out;
   }
-
   function makeSession(pin, date, inTs, outTs) {
     let durMin = null, problem = null;
     if (inTs && outTs) { if (outTs > inTs) durMin = Math.round((outTs - inTs) / 60000); else problem = 'Out is before in'; }
     else problem = inTs ? 'No clock-out' : 'No clock-in';
     return { pin, date, inTs, outTs, durMin, problem };
   }
-
-  /** What the user typed -> pairs. "next" moves only the OUT to the next date. */
+  /** What the user typed -> pairs.
+   *  prev = the IN is on the day BEFORE this date · next = the OUT is on the day AFTER. */
   const draftToSessions = (date, draft, pin = '') => draft.map(d => makeSession(pin, date,
-    d.in ? at(date, d.in) : null, d.out ? at(d.next ? addDays(date, 1) : date, d.out) : null));
+    d.in ? at(d.prev ? addDays(date, -1) : date, d.in) : null,
+    d.out ? at(d.next ? addDays(date, 1) : date, d.out) : null));
   const sessionsToDraft = (date, sessions) => sessions.map(s => ({
-    in: hm(s.inTs), out: hm(s.outTs), next: !!(s.outTs && ymd(s.outTs) !== date) }));
+    in: hm(s.inTs), out: hm(s.outTs),
+    prev: !!(s.inTs && ymd(s.inTs) < date),
+    next: !!(s.outTs && ymd(s.outTs) > date) }));
 
-  /* ---------------- 5. working hours + overtime ----------------
-   * workMin = ALL minutes on the clock (overtime included).
-   * otMin   = part after the end of the schedule worked, from minute 0.
-   *           Early never counts. Day off = all of it. Not allowed = 0.     */
+  /* workMin = total on the clock (overtime included) · otMin = part after the schedule end */
   function windows(date, sh) {
     return [-1, 0, 1].map(off => { const start = at(addDays(date, off), sh.start);
       return { sh, start, end: new Date(start.getTime() + shiftLen(sh) * 60000) }; });
@@ -512,8 +487,7 @@ const Engine = (() => {
     return { ...res, otMin: ot, why: ot ? 'AFTER' : 'NONE' };
   }
 
-  /* ---------------- 6. one cell per person per date ----------------
-   * status: miss = has "??" · ok = complete · edit = complete + edited · off · none */
+  /* status: db = in the database · miss = "??" · ok · edit · off · none */
   function buildCells(sessions, emps, dates, shifts, overrides) {
     const cells = new Map();
     for (const e of emps) for (const d of dates)
@@ -529,102 +503,91 @@ const Engine = (() => {
       const mine = shifts.filter(sh => e.shiftIds.includes(sh.id));
       Object.assign(c, splitDay(c.type, c.sessions, c.date, mine, e.otOn, shifts.filter(sh => c.chosen.includes(sh.id))));
       c.problems = c.sessions.filter(s => s.problem).map(s => s.problem);
-      c.status = c.problems.length ? 'miss' : c.sessions.length ? (c.edited ? 'edit' : 'ok') : c.type === 'WORK' ? 'none' : 'off';
+      c.status = c.problems.length ? 'miss'
+               : c.sessions.length ? (c.edited ? 'edit' : 'ok')
+               : c.type !== 'WORK' ? 'off'
+               : c.edited ? 'edit' : 'none';          // a Work day set by hand with no time is a real entry
     }
     return cells;
   }
 
-  /* ---------------- 7. database rows ---------------- */
+  /** Database wins: replace the cell with exactly what the database has for this person + date. */
+  function applyDbRow(c, r) {
+    c.type = r.day_type || 'WORK';
+    c.note = r.note || '';
+    c.chosen = [];
+    c.sessions = draftToSessions(c.date, parseInOut(r.in_out), c.pin);
+    c.workMin = r.working_minutes || 0;
+    c.otMin = r.overtime_minutes || 0;
+    c.names = r.schedule ? r.schedule.split(' + ') : [];
+    c.edited = !!r.edited;
+    c.problems = [];
+    c.status = 'db';
+    return c;
+  }
+
+  /** One in/out as stored text: "(-1)22:00-06:00", "09:00-16:00", "22:46-07:17 (+1)" */
+  const ioText = (s, date) => `${s.inTs && ymd(s.inTs) < date ? '(-1)' : ''}${hm(s.inTs)}-${hm(s.outTs)}${s.outTs && ymd(s.outTs) > date ? ' (+1)' : ''}`;
+
   function toRecord(c, otOn) {
     return {
       pin: c.pin, work_date: c.date, name: c.name, dept: c.dept || null, day_type: c.type,
       schedule: c.names.join(' + ') || null,
       time_in: hm(c.sessions[0]?.inTs) || null,
       time_out: hm(c.sessions[c.sessions.length - 1]?.outTs) || null,
-      in_out: c.sessions.map(s => `${hm(s.inTs)}-${hm(s.outTs)}${ymd(s.outTs) !== c.date ? ' (+1)' : ''}`).join('; ') || null,
+      in_out: c.sessions.map(s => ioText(s, c.date)).join('; ') || null,
       working_minutes: c.workMin, overtime_minutes: c.otMin,
       overtime_allowed: otOn, edited: c.edited, note: c.note || null,
     };
   }
-  /** fingerprint of a row — tells whether a day changed since it was saved */
-  const recHash = r => JSON.stringify([r.day_type, r.schedule || null, r.in_out || null, r.working_minutes, r.overtime_minutes,
-                                       !!r.overtime_allowed, r.note || null, r.name, r.dept || null]);
-  /** "09:00-12:00; 22:46-07:17 (+1)" -> [{in,out,next}] */
-  const parseInOut = txt => String(txt || '').split(';').map(x => x.trim()).filter(Boolean).map(x => {
-    const m = x.match(/^(\d{2}:\d{2})?-(\d{2}:\d{2})?(\s*\(\+1\))?/) || [];
-    return { in: m[1] || '', out: m[2] || '', next: !!m[3] };
-  });
+  /** "(-1)22:00-06:00; 09:00-12:00; 22:46-07:17 (+1)" -> [{in,out,prev,next}] */
+  function parseInOut(txt) {
+    return String(txt || '').split(';').map(x => x.trim()).filter(Boolean).map(x => {
+      const m = x.match(/^(\(-1\)\s*)?(\d{2}:\d{2})?-(\d{2}:\d{2})?(\s*\(\+1\))?/) || [];
+      return { in: m[2] || '', out: m[3] || '', prev: !!m[1], next: !!m[4] };
+    });
+  }
 
   return { DEFAULT_SHIFTS, DAY_TYPES, parseWorkbook, analyseImport, deriveEmployees, defaultSchedules,
-           buildSessions, draftToSessions, sessionsToDraft, splitDay, buildCells, toRecord, recHash, parseInOut,
+           buildSessions, draftToSessions, sessionsToDraft, splitDay, buildCells, applyDbRow, toRecord, parseInOut,
            ymd, hm, toMin, addDays, camelName, monthLabel, shiftLen };
 })();
-if (typeof module !== 'undefined') module.exports = Engine;
-
 </script>
+
 <script>
 /* ============================================================================
- * store.js — saving.
- *  - Check work stays in this browser (localStorage).
- *  - "Save to database" sends clean rows to Supabase (one per person per date).
- *  - The Dashboard reads ONLY from Supabase.
+ * STORE — the DATABASE is the truth. This browser only keeps the raw file and
+ * fixes for days that are NOT in the database yet.
  * ==========================================================================*/
-
-/* ---- Supabase connection (change these two lines to use another project) ---- */
 const SUPABASE_URL = 'https://ruzzyvloaqbjzwzwwkzv.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1enp5dmxvYXFianp3end3a3p2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAzMTY3NDEsImV4cCI6MjEwNTg5Mjc0MX0.vysB6fDeBunk2YsWRSjp1Q3Psc2Qb3_rbanF26BPHmw';
 const SUPABASE_TABLE = 'attendance_records';
 
 const Store = (() => {
-  const KEY = 'attendance_v7';                        // browser storage key (v7 = database dashboard)
-  const OLD_KEY = 'attendance_v6';                    // previous version, copied over once
+  const KEY = 'attendance_v9';
+  const OLD_KEYS = ['attendance_v8', 'attendance_v7', 'attendance_v6'];     // older versions, copied over once
+  const blank = () => ({ files: [], scans: [], employees: [], shifts: Engine.DEFAULT_SHIFTS.map(s => ({ ...s })), overrides: {} });
+  let state = blank(), client = null;
 
-  const blank = () => ({
-    files: [],                                        // files loaded
-    scans: [],                                        // raw taps (browser only)
-    employees: [],                                    // people + schedules + overtime allowed
-    shifts: Engine.DEFAULT_SHIFTS.map(s => ({ ...s })),
-    overrides: {},                                    // "pin|date" -> the user's corrected day
-    saved: {},                                        // "pin|date" -> fingerprint of what is in the database
-  });
-
-  let state = blank();
-  let client = null;
-
-  /* browser save / load */
   const pack = () => JSON.stringify({ ...state, scans: state.scans.map(s => ({ ...s, ts: s.ts.getTime() })) });
-  const unpack = o => { o.scans = (o.scans || []).map(s => ({ ...s, ts: new Date(s.ts) })); return { ...blank(), ...o, saved: o.saved || {} }; };
-  function save() { try { localStorage.setItem(KEY, pack()); } catch { alert('Browser storage is full. Export a backup, then “Clear Check work”.'); } }
+  const unpack = o => { o.scans = (o.scans || []).map(s => ({ ...s, ts: new Date(s.ts) })); delete o.saved; return { ...blank(), ...o }; };
+  function save() { try { localStorage.setItem(KEY, pack()); } catch { alert('Browser storage is full. Use “Clear Check work” in Settings.'); } }
   function load() {
-    try {
-      const o = JSON.parse(localStorage.getItem(KEY) || localStorage.getItem(OLD_KEY) || 'null');   // keeps your v6 work
-      if (!o) return false;
-      state = unpack(o); return true;
-    } catch { return false; }
+    try { const raw = localStorage.getItem(KEY) || OLD_KEYS.map(k => localStorage.getItem(k)).find(Boolean);
+          if (!raw) return false; state = unpack(JSON.parse(raw)); return true; } catch { return false; }
   }
-  function reset() { state = blank(); save(); localStorage.removeItem(OLD_KEY); }
+  function reset() { state = blank(); save(); OLD_KEYS.forEach(k => localStorage.removeItem(k)); }
   const backup = () => pack();
-  function restore(text) {
-    const o = JSON.parse(text);
-    if (!Array.isArray(o.scans)) throw new Error('This is not an attendance backup file.');
-    state = unpack(o); save();
-  }
+  function restore(text) { const o = JSON.parse(text); if (!Array.isArray(o.scans)) throw new Error('This is not an attendance backup file.'); state = unpack(o); save(); }
 
-  /* database */
-  function connect() {
-    client = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-    return !!client;
-  }
+  function connect() { client = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null; return !!client; }
   const need = () => { if (!client) throw new Error('The Supabase library did not load (no internet, or cdn.jsdelivr.net is blocked).'); };
-
-  /** '' if the table is reachable, otherwise the error text */
   async function test() {
     try { need(); } catch (e) { return e.message; }
     const { error } = await client.from(SUPABASE_TABLE).select('pin', { head: true, count: 'exact' }).limit(1);
     return error ? error.message : '';
   }
-
-  /** Upsert rows. Same person + same date = UPDATED, never duplicated. */
+  /** Same person + same date = UPDATED, never duplicated. */
   async function pushRecords(rows) {
     need();
     for (let i = 0; i < rows.length; i += 500) {
@@ -634,8 +597,6 @@ const Store = (() => {
     }
     return rows.length;
   }
-
-  /** Read every saved row (1000 per request = Supabase limit). */
   async function fetchRecords() {
     need();
     const all = [];
@@ -646,39 +607,38 @@ const Store = (() => {
       if (data.length < 1000) return all;
     }
   }
-
   return { get state() { return state; }, save, load, reset, backup, restore, connect, test, pushRecords, fetchRecords, url: SUPABASE_URL };
 })();
-
 </script>
+
 <script>
 /* ============================================================================
- * app.js — everything on screen.
- *  1 · Check     : the file + your fixes (this browser). Blue dot = not in the database yet.
- *  2 · Dashboard : ONLY what is in the database. "⟳ Refresh" loads the latest.
- *  Settings      : schedules, people (schedules + overtime allowed), database, backup.
+ * APP — THE RULE: the database is the truth.
+ *  - Check loads the database first. A person + date already in the database
+ *    is shown FROM THE DATABASE (☁); the file is ignored for that day.
+ *  - Days NOT in the database come from the file; "Save to database" sends only those.
+ *  - Editing a ☁ day (Check or Dashboard) writes to the database immediately.
  * ==========================================================================*/
 (() => {
   const $  = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
   const S  = () => Store.state;
 
-  let M = { emps: [], cells: new Map(), dates: [] };                 // Check model
-  const DB = { rows: [], map: new Map(), people: [], dates: [], at: null, busy: false, error: '' };  // Dashboard model
+  let M = { emps: [], cells: new Map(), dates: [], fromDb: 0 };
+  const DB = { rows: [], map: new Map(), people: [], dates: [], at: null, busy: false, error: '' };
   let onlyMissing = false;
-  let F = { from: '', to: '', teams: new Set(), find: '' };          // Dashboard filters
-  let P0 = null, draft = [], chosen = [];                            // the day open in the edit panel
-  let pending = null;                                                // a file waiting for "keep / use file"
+  let F = { from: '', to: '', teams: new Set(), find: '' };
+  let P0 = null, draft = [], chosen = [];
+  let pending = null;
 
-  /* ============================ START ============================ */
   function boot() {
-    Store.load();
-    Store.connect();
+    Store.load(); Store.connect();
     wireTabs(); wireTop(); wireFile(); wireAsk(); wirePanel(); wireDash(); wireSettings();
-    if (S().scans.length) refresh(); else markSaved();
+    if (S().scans.length) refresh(); else markUnsaved();
+    loadDb();                                                         // database first — it wins
   }
 
-  /** Rebuild Check from the raw taps + fixes. */
+  /** File + local fixes, then every day that exists in the database is replaced by the database. */
   function refresh() {
     const st = S();
     const sessions = Engine.buildSessions(st.scans);
@@ -690,25 +650,30 @@ const Store = (() => {
       for (let d = a; d <= z; d = Engine.addDays(d, 1)) M.dates.push(d);
     }
     M.cells = Engine.buildCells(sessions, M.emps, M.dates, st.shifts, st.overrides);
-    markSaved();
-    Store.save();
+    M.fromDb = 0;
+    for (const c of M.cells.values()) {
+      const r = DB.map.get(c.key);
+      if (!r) continue;
+      Engine.applyDbRow(c, r);                                        // database wins
+      delete st.overrides[c.key];
+      M.fromDb++;
+    }
+    markUnsaved(); Store.save();
     $('#drop').classList.toggle('hidden', !!st.scans.length);
     $('#checkPanel').classList.toggle('hidden', !st.scans.length);
     $('#period').textContent = M.dates.length ? `${fmt(M.dates[0])} → ${fmt(M.dates.at(-1))} ${M.dates.at(-1).slice(0, 4)}` : 'no file yet';
-    drawCheck();
+    drawCheckBar(); drawCheck();
     if (!$('#v-set').classList.contains('hidden')) drawSettings();
   }
 
-  /** c.unsaved = complete day that is new/changed since the last save · c.stale = saved before, now has "??" */
-  function markSaved() {
+  /** Blue dot = a complete day (or a day type set by hand) that is NOT in the database yet. */
+  function markUnsaved() {
     let n = 0;
     for (const c of M.cells.values()) {
-      c.rec = null; c.unsaved = false; c.stale = false;
-      if (c.status === 'miss') { c.stale = !!S().saved[c.key]; continue; }
-      if (c.status === 'none') continue;
+      c.rec = null; c.unsaved = false;
+      if (c.status === 'db' || c.status === 'miss' || c.status === 'none') continue;
       c.rec = Engine.toRecord(c, M.emps.find(e => e.pin === c.pin).otOn);
-      c.unsaved = S().saved[c.key] !== Engine.recHash(c.rec);
-      if (c.unsaved) n++;
+      c.unsaved = true; n++;
     }
     const b = $('#btnSave');
     b.textContent = n ? `Save to database (${n})` : M.dates.length ? 'Saved ✓' : 'Save to database';
@@ -716,13 +681,46 @@ const Store = (() => {
     b.classList.toggle('done', !n && !!M.dates.length);
   }
 
-  /* ============================ TABS + TOP ============================ */
+  /* ---------------- database ---------------- */
+  async function loadDb() {
+    DB.busy = true; DB.error = ''; drawDbBar(); drawCheckBar();
+    try {
+      const rows = await Store.fetchRecords();
+      DB.rows = rows;
+      DB.map = new Map(rows.map(r => [`${r.pin}|${r.work_date}`, r]));
+      const people = new Map();
+      for (const r of rows) people.set(r.pin, { pin: r.pin, name: r.name, dept: r.dept || '' });
+      DB.people = [...people.values()].sort((x, y) => x.name.localeCompare(y.name));
+      DB.dates = [];
+      if (rows.length) for (let d = rows[0].work_date; d <= rows.at(-1).work_date; d = Engine.addDays(d, 1)) DB.dates.push(d);
+      DB.at = new Date();
+    } catch (e) { DB.error = e.message || String(e); }
+    DB.busy = false;
+    if (S().scans.length) refresh();
+    drawCheckBar(); drawDash();
+  }
+  const timeNow = d => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  function drawCheckBar() {
+    $('#ckRefresh').disabled = DB.busy;
+    $('#ckRefresh').textContent = DB.busy ? 'Loading…' : '⟳ Refresh from database';
+    $('#ckDb').innerHTML = DB.error ? `<span class="pill bad">✕ Database: ${esc(DB.error)} — showing the file only</span>`
+      : DB.at ? `<span class="pill teal">☁ ${M.fromDb} day(s) from the database</span> · the rest from the file · loaded at ${timeNow(DB.at)}`
+      : 'Loading the database…';
+  }
+  function drawDbBar() {
+    $('#dbRefresh').disabled = DB.busy;
+    $('#dbRefresh').textContent = DB.busy ? 'Loading…' : '⟳ Refresh';
+    $('#dbInfo').innerHTML = DB.error ? `<span class="pill bad">✕ ${esc(DB.error)}</span>`
+      : DB.at ? `From the database · <b>${DB.rows.length}</b> saved days · loaded at ${timeNow(DB.at)}` : 'Not loaded yet — press ⟳ Refresh';
+  }
+
+  /* ---------------- tabs + top ---------------- */
   function wireTabs() {
     $$('.tab').forEach(t => t.onclick = () => {
       $$('.tab').forEach(x => x.classList.toggle('on', x === t));
       $$('.view').forEach(v => v.classList.add('hidden'));
       $('#v-' + t.dataset.v).classList.remove('hidden');
-      if (t.dataset.v === 'dash') { if (!DB.at && !DB.busy) loadDb(); else drawDash(); }   // first visit loads by itself
+      if (t.dataset.v === 'dash') drawDash();
       if (t.dataset.v === 'set') drawSettings();
     });
   }
@@ -731,9 +729,10 @@ const Store = (() => {
     document.addEventListener('click', e => { if (!e.target.closest('.dropdown')) $('#expMenu').classList.add('hidden'); });
     $$('#expMenu button').forEach(b => b.onclick = () => { $('#expMenu').classList.add('hidden'); exportFile(b.dataset.x); });
     $('#btnSave').onclick = saveToDb;
+    $('#ckRefresh').onclick = loadDb;
   }
 
-  /* ============================ ADD A FILE ============================ */
+  /* ---------------- add a file ---------------- */
   function wireFile() {
     $('#file').onchange = e => { if (e.target.files[0]) readFile(e.target.files[0]); e.target.value = ''; };
     const dz = $('#drop');
@@ -746,14 +745,14 @@ const Store = (() => {
       const a = Engine.analyseImport(S().scans, Engine.parseWorkbook(await file.arrayBuffer()), S().overrides);
       pending = { a, name: file.name };
       if (a.conflicts.length) {
-        $('#askBody').innerHTML = `<p>${a.conflicts.length} day(s) you fixed get new taps from <b>${esc(file.name)}</b>:</p><ul>` +
+        $('#askBody').innerHTML = `<p>${a.conflicts.length} day(s) you fixed (not yet saved) get new taps from <b>${esc(file.name)}</b>:</p><ul>` +
           a.conflicts.slice(0, 8).map(k => `<li>${esc(empName(k.split('|')[0]))} — ${fmt(k.split('|')[1])}</li>`).join('') +
           (a.conflicts.length > 8 ? `<li>…and ${a.conflicts.length - 8} more</li>` : '') + '</ul>';
         $('#ask').classList.remove('hidden');
       } else addPending(false);
     } catch (e) { toast('⚠ ' + e.message); }
   }
-  function addPending(useFile) {
+  async function addPending(useFile) {
     const { a, name } = pending, st = S();
     st.scans = [...st.scans, ...a.fresh].sort((x, y) => x.ts - y.ts);
     for (const n of Engine.deriveEmployees(st.scans)) if (!st.employees.some(e => e.pin === n.pin)) st.employees.push(n);
@@ -762,7 +761,8 @@ const Store = (() => {
     st.files.push({ name, at: new Date().toISOString(), rows: a.total, added: a.fresh.length, repeated: a.repeated });
     pending = null;
     refresh();
-    toast(`${a.fresh.length} taps added` + (a.repeated ? ` · ${a.repeated} already here (skipped)` : ''));
+    await loadDb();
+    toast(`${a.fresh.length} taps added · ${M.fromDb} day(s) already in the database are shown from the database`);
   }
   function wireAsk() {
     const close = () => $('#ask').classList.add('hidden');
@@ -771,7 +771,7 @@ const Store = (() => {
     $('#askFile').onclick = () => { close(); addPending(true); };
   }
 
-  /* ============================ SHARED ============================ */
+  /* ---------------- shared ---------------- */
   function nameCell(p) {
     const sched = S().shifts.filter(s => (p.shiftIds || []).includes(s.id)).map(s => s.name).join(' + ');
     return `<td class="nm"><b title="${esc(p.name)}">${esc(p.name)}</b>
@@ -781,20 +781,20 @@ const Store = (() => {
     const wd = new Date(d + 'T00:00:00').toLocaleDateString('en', { weekday: short ? 'narrow' : 'short' });
     return `<th class="${isSun(d) ? 'sun' : ''}">${short ? +d.slice(8) : `${d.slice(8)}/${d.slice(5, 7)}`}<small>${wd}</small></th>`;
   }
-  /** "08:58–16:03", "13:40–??", "22:46–07:17 (16/09)" */
+  /** "08:58–16:03", "13:40–??", "(13/09) 22:00–06:00", "22:46–07:17 (16/09)" */
   function line(s, date, html = true) {
     const q = html ? '<span class="q">??</span>' : '??';
-    const nx = s.outTs && Engine.ymd(s.outTs) !== date;
-    const nd = nx ? (html ? ` <span class="nx">(${fmtShort(Engine.ymd(s.outTs))})</span>` : ` (${fmtShort(Engine.ymd(s.outTs))})`) : '';
-    return `${s.inTs ? Engine.hm(s.inTs) : q}–${s.outTs ? Engine.hm(s.outTs) : q}${nd}`;
+    const tag = d => html ? `<span class="nx">(${fmtShort(d)})</span>` : `(${fmtShort(d)})`;
+    const pv = s.inTs && Engine.ymd(s.inTs) !== date ? tag(Engine.ymd(s.inTs)) + ' ' : '';
+    const nx = s.outTs && Engine.ymd(s.outTs) !== date ? ' ' + tag(Engine.ymd(s.outTs)) : '';
+    return `${pv}${s.inTs ? Engine.hm(s.inTs) : q}–${s.outTs ? Engine.hm(s.outTs) : q}${nx}`;
   }
-  /** Click ANY cell = edit. Check reads local cells, Dashboard reads database rows. */
+  /** Click ANY cell. A day in the database always opens the database version. */
   function bind(root) {
-    const fromDb = root.id === 'dashGrid';
     root.querySelectorAll('td[data-key]').forEach(td => {
-      const k = td.dataset.key;
-      td.onclick = () => fromDb ? openDbPanel(k) : openPanel(k);
-      td.onmousemove = ev => fromDb ? dbTip(ev, k) : tip(ev, M.cells.get(k));
+      const k = td.dataset.key, inDb = () => DB.map.has(k), dash = root.id === 'dashGrid';
+      td.onclick = () => (inDb() || dash) ? openDbPanel(k) : openPanel(k);
+      td.onmousemove = ev => inDb() ? dbTip(ev, k) : dash ? showTip(ev, dbPerson(k.split('|')[0]).name, k.split('|')[1], '<div class="l"><span>Not saved — click to add</span></div>') : tip(ev, M.cells.get(k));
       td.onmouseleave = () => $('#tip').classList.add('hidden');
     });
   }
@@ -807,18 +807,18 @@ const Store = (() => {
   }
   function tip(ev, c) {
     if (!c) return;
-    let b = c.sessions.length
+    let b = `<div class="l"><span>Day</span><b>${Engine.DAY_TYPES[c.type]}</b></div>`;
+    b += c.sessions.length
       ? c.sessions.map(s => `<div class="l"><span>In – out</span><b>${line(s, c.date, false)}</b></div>`).join('')
         + `<div class="l"><span>Working (total)</span><b>${hrs(c.workMin)}</b></div>`
         + (c.otMin ? `<div class="l o"><span>of which overtime</span><b>${hrs(c.otMin)}</b></div>` : '')
-      : `<div class="l"><span>${c.type === 'WORK' ? 'No tap — click to add' : Engine.DAY_TYPES[c.type]}</span></div>`;
+      : `<div class="l"><span>${c.status === 'none' ? 'No tap — click to add' : 'No in / out time'}</span></div>`;
     if (c.problems.length) b += `<div class="l o"><span>${c.problems[0]}</span></div>`;
     if (c.unsaved) b += `<div class="l"><span>● Not in the database yet</span></div>`;
-    if (c.stale) b += `<div class="l o"><span>Database still has the older version</span></div>`;
     showTip(ev, c.name, c.date, b);
   }
 
-  /* ============================ 1 · CHECK ============================ */
+  /* ---------------- 1 · CHECK ---------------- */
   function drawCheck() {
     if (!M.dates.length) return;
     $('#nMiss').textContent = [...M.cells.values()].filter(c => c.status === 'miss').length;
@@ -835,13 +835,44 @@ const Store = (() => {
   }
   function checkCell(c) {
     const lab = c.type !== 'WORK' ? `<div class="lab">${Engine.DAY_TYPES[c.type]}</div>` : '';
-    const cls = (c.status === 'miss' ? 'miss' : c.type !== 'WORK' ? 'off' : c.status) + (c.unsaved ? ' unsaved' : '');
-    if (!c.sessions.length) return `<div class="cell ${cls}">${lab || '<div class="t">＋ add</div>'}</div>`;
+    let cls = c.status === 'db' ? 'db' : c.status === 'miss' ? 'miss' : c.type !== 'WORK' ? 'off' : c.status;
+    if (c.unsaved) cls += ' unsaved';
+    if (!c.sessions.length) {
+      const body = lab || (c.status === 'none' ? '<div class="t">＋ add</div>' : '<div class="lab">Work day · no time</div>');
+      return `<div class="cell ${cls}">${body}</div>`;
+    }
     const sub = c.status === 'miss' ? '' : `<div class="s">${hrs(c.workMin)}${c.otMin ? ` · <span class="ot">OT ${hrs(c.otMin)}</span>` : ''}</div>`;
     return `<div class="cell ${cls}">${lab}<div class="t">${c.sessions.map(s => line(s, c.date)).join('<br>')}</div>${sub}</div>`;
   }
 
-  /* ============================ 2 · DASHBOARD (database only) ============================ */
+  /* ---------------- 2 · DASHBOARD (database only) ---------------- */
+  /* summary columns on the right: 5 day counts + 2 hour totals */
+  const SUMS = [
+    { k: 'WORK',   label: 'Work day',     unit: 'days', w: 60 },
+    { k: 'OFF',    label: 'Day off',      unit: 'days', w: 60 },
+    { k: 'LEAVE',  label: 'Annual leave', unit: 'days', w: 64 },
+    { k: 'SICK',   label: 'Sick',         unit: 'days', w: 56 },
+    { k: 'ABSENT', label: 'Absent',       unit: 'days', w: 60 },
+    { k: 'work',   label: 'Working',      unit: 'total', w: 84 },
+    { k: 'ot',     label: 'Overtime',     unit: 'included', w: 84 },
+  ];
+  const SUMW = SUMS.reduce((t, s) => t + s.w, 0);
+  /** inline "position:sticky; right:Npx" for summary column i */
+  const sumStyle = i => `right:${SUMS.slice(i + 1).reduce((t, s) => t + s.w, 0)}px;width:${SUMS[i].w}px;min-width:${SUMS[i].w}px`;
+  const emptyTotals = () => ({ WORK: 0, OFF: 0, LEAVE: 0, SICK: 0, ABSENT: 0, work: 0, ot: 0 });
+  /** add one database row to a totals object */
+  function addRow(t, r) {
+    t[r.day_type in t ? r.day_type : 'WORK']++;          // every saved day counts once, in its own type
+    t.work += r.working_minutes || 0;
+    t.ot += r.overtime_minutes || 0;
+  }
+  function sumCells(t, rowClass = '') {
+    return SUMS.map((s, i) => {
+      const v = t[s.k], hrsCol = s.unit !== 'days';
+      return `<td class="tot ${hrsCol ? '' : 'cnt'} ${s.k === 'ot' ? 'o' : ''} ${i === 0 ? 'first' : ''} ${v ? '' : 'zero'} ${rowClass}" style="${sumStyle(i)}">${hrsCol ? hrs(v) : v}</td>`;
+    }).join('');
+  }
+
   function wireDash() {
     $('#dbRefresh').onclick = loadDb;
     ['fFrom', 'fTo'].forEach(id => $('#' + id).onchange = () => {
@@ -851,36 +882,6 @@ const Store = (() => {
     });
     $('#fFind').oninput = () => { F.find = $('#fFind').value.trim().toLowerCase(); drawDash(); };
   }
-
-  /** Load every saved row from Supabase. */
-  async function loadDb() {
-    DB.busy = true; DB.error = ''; drawDbBar();
-    try {
-      const rows = await Store.fetchRecords();
-      DB.rows = rows;
-      DB.map = new Map(rows.map(r => [`${r.pin}|${r.work_date}`, r]));
-      const people = new Map();
-      for (const r of rows) people.set(r.pin, { pin: r.pin, name: r.name, dept: r.dept || '' });
-      DB.people = [...people.values()].sort((x, y) => x.name.localeCompare(y.name));
-      DB.dates = [];
-      if (rows.length) for (let d = rows[0].work_date; d <= rows.at(-1).work_date; d = Engine.addDays(d, 1)) DB.dates.push(d);
-      DB.at = new Date();
-      for (const r of rows) S().saved[`${r.pin}|${r.work_date}`] = Engine.recHash(r);   // Check knows what is saved
-      if (M.dates.length) { markSaved(); drawCheck(); }
-      Store.save();
-    } catch (e) { DB.error = e.message || String(e); }
-    DB.busy = false;
-    drawDash();
-  }
-
-  function drawDbBar() {
-    $('#dbRefresh').disabled = DB.busy;
-    $('#dbRefresh').textContent = DB.busy ? 'Loading…' : '⟳ Refresh';
-    $('#dbInfo').innerHTML = DB.error ? `<span class="pill bad">✕ ${esc(DB.error)}</span>`
-      : DB.at ? `From the database · <b>${DB.rows.length}</b> saved days · loaded at ${DB.at.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-      : 'Not loaded yet — press ⟳ Refresh';
-  }
-
   function periods() {
     const a = DB.dates[0], z = DB.dates.at(-1), out = [{ id: 'all', label: 'All saved', from: a, to: z }];
     for (const m of new Set(DB.dates.map(d => d.slice(0, 7)))) {
@@ -890,11 +891,10 @@ const Store = (() => {
     return out;
   }
   const dbPerson = pin => {
-    const p = DB.people.find(x => x.pin === pin) || { pin, name: empName(pin), dept: '' };
     const e = S().employees.find(x => x.pin === pin);
+    const p = DB.people.find(x => x.pin === pin) || { pin, name: e?.name || pin, dept: e?.dept || '' };
     return { ...p, shiftIds: e ? e.shiftIds : [], otOn: e ? e.otOn : undefined, local: !!e };
   };
-
   function drawDash() {
     drawDbBar();
     if (!DB.rows.length) {
@@ -910,7 +910,6 @@ const Store = (() => {
     const teams = [...new Set(DB.people.map(p => p.dept || 'No team'))].sort();
     const people = DB.people.map(p => dbPerson(p.pin))
       .filter(p => (!F.teams.size || F.teams.has(p.dept || 'No team')) && (!F.find || p.name.toLowerCase().includes(F.find)));
-
     const P = periods(), cur = P.find(p => p.from === from && p.to === to);
     $('#fPeriod').innerHTML = P.map(p => `<button class="fc ${cur === p ? 'on' : ''}" data-p="${p.id}">${p.label}</button>`).join('')
       + `<button class="fc ${cur ? '' : 'on'}" disabled>Custom</button>`;
@@ -930,49 +929,52 @@ const Store = (() => {
       + (F.from || F.teams.size || F.find ? '<a id="reset">Reset filters</a>' : '');
     $('#reset')?.addEventListener('click', () => { F = { from: '', to: '', teams: new Set(), find: '' }; $('#fFind').value = ''; drawDash(); });
 
-    let W = 0, O = 0;
-    let h = `<table class="grid" style="min-width:${190 + dates.length * 28 + 192}px"><colgroup><col style="width:190px">${dates.map(() => '<col>').join('')}
-      <col style="width:96px"><col style="width:96px"></colgroup>
+    const ALL = emptyTotals();
+    let h = `<table class="grid" style="min-width:${190 + dates.length * 30 + SUMW}px"><colgroup><col style="width:190px">${dates.map(() => '<col>').join('')}
+      ${SUMS.map(s => `<col style="width:${s.w}px">`).join('')}</colgroup>
       <thead><tr><th class="nm">Name</th>${dates.map(d => dateTh(d, true)).join('')}
-      <th class="tot w">Working<small>total</small></th><th class="tot o">Overtime<small>included</small></th></tr></thead><tbody>`;
+      ${SUMS.map((s, i) => `<th class="tot ${s.k === 'ot' ? 'o' : ''} ${i === 0 ? 'first' : ''}" style="${sumStyle(i)}">${s.label}<small>${s.unit}</small></th>`).join('')}</tr></thead><tbody>`;
     for (const p of people) {
-      let w = 0, o = 0;
-      for (const d of dates) { const r = DB.map.get(`${p.pin}|${d}`); if (r) { w += r.working_minutes; o += r.overtime_minutes; } }
-      W += w; O += o;
+      const T = emptyTotals();
+      for (const d of dates) { const r = DB.map.get(`${p.pin}|${d}`); if (r) { addRow(T, r); addRow(ALL, r); } }
       h += `<tr>${nameCell(p)}${dates.map(d => `<td class="pick-td ${isSun(d) ? 'sun' : ''}" data-key="${p.pin}|${d}">${dbBox(DB.map.get(`${p.pin}|${d}`))}</td>`).join('')}
-        <td class="tot w ${w ? '' : 'zero'}">${hrs(w)}</td><td class="tot o ${o ? '' : 'zero'}">${hrs(o)}</td></tr>`;
+        ${sumCells(T)}</tr>`;
     }
-    h += `</tbody><tfoot><tr><td class="nm"><b>Total</b></td><td colspan="${dates.length}"></td><td class="tot w">${hrs(W)}</td><td class="tot o">${hrs(O)}</td></tr></tfoot></table>`;
+    h += `</tbody><tfoot><tr><td class="nm"><b>Total</b></td><td colspan="${dates.length}"></td>${sumCells(ALL)}</tr></tfoot></table>`;
     $('#dashGrid').innerHTML = people.length ? h : '<p class="hint" style="padding:20px">Nobody matches these filters.</p>';
     bind($('#dashGrid'));
   }
   function dbBox(r) {
     if (!r) return `<i class="box none">＋</i>`;
-    const letter = { OFF: 'O', LEAVE: 'L', SICK: 'S', ABSENT: 'A' }[r.day_type];
-    if (letter && !r.working_minutes) return `<i class="box off">${letter}</i>`;
+    if (r.day_type && r.day_type !== 'WORK' && !r.working_minutes) {
+      const [ch, cls] = { OFF: ['O', 'off'], LEAVE: ['AL', 'off'], SICK: ['S', 'sick'], ABSENT: ['A', 'abs'] }[r.day_type] || ['?', 'off'];
+      return `<i class="box ${cls}">${ch}</i>`;
+    }
+    if (!r.working_minutes) return `<i class="box ok">W</i>`;          // work day with no in/out time
     return `<i class="box ${r.overtime_minutes ? 'ot' : r.edited ? 'edit' : 'ok'}">✓</i>`;
   }
   function dbTip(ev, key) {
     const r = DB.map.get(key), [pin, date] = key.split('|');
-    const b = !r ? `<div class="l"><span>Not saved — click to add</span></div>`
-      : (r.day_type !== 'WORK' ? `<div class="l"><span>${Engine.DAY_TYPES[r.day_type] || r.day_type}</span></div>` : '')
-        + (r.in_out ? r.in_out.split(';').map(x => `<div class="l"><span>In – out</span><b>${esc(x.trim())}</b></div>`).join('') : '')
-        + `<div class="l"><span>Working (total)</span><b>${hrs(r.working_minutes)}</b></div>`
-        + (r.overtime_minutes ? `<div class="l o"><span>of which overtime</span><b>${hrs(r.overtime_minutes)}</b></div>` : '')
-        + (r.note ? `<div class="l"><span>Note</span><span>${esc(r.note)}</span></div>` : '')
-        + `<div class="l"><span>Saved</span><span>${new Date(r.saved_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</span></div>`;
+    const io = Engine.parseInOut(r.in_out);
+    const sess = Engine.draftToSessions(date, io);
+    const b = `<div class="l c"><span>☁ From the database</span></div>`
+      + `<div class="l"><span>Day</span><b>${Engine.DAY_TYPES[r.day_type] || r.day_type}</b></div>`
+      + (sess.length ? sess.map(s => `<div class="l"><span>In – out</span><b>${line(s, date, false)}</b></div>`).join('') : `<div class="l"><span>No in / out time</span></div>`)
+      + `<div class="l"><span>Working (total)</span><b>${hrs(r.working_minutes)}</b></div>`
+      + (r.overtime_minutes ? `<div class="l o"><span>of which overtime</span><b>${hrs(r.overtime_minutes)}</b></div>` : '')
+      + (r.note ? `<div class="l"><span>Note</span><span>${esc(r.note)}</span></div>` : '')
+      + `<div class="l"><span>Saved</span><span>${new Date(r.saved_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</span></div>`;
     showTip(ev, dbPerson(pin).name, date, b);
   }
 
-  /* ============================ EDIT PANEL ============================
-   * from Check     : Save keeps the fix in this browser (blue dot until "Save to database")
-   * from Dashboard : Save to database writes that day right away (and Check follows)      */
+  /* ---------------- EDIT PANEL ----------------
+   * day in the database : "Save to database" writes it immediately
+   * day only in the file: "Save" keeps the fix here (blue dot) until "Save to database" */
   const regular = () => S().shifts.find(s => s.id === 'REG') || S().shifts[0];
-
   function wirePanel() {
     $('#pType').innerHTML = Object.entries(Engine.DAY_TYPES).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
     $('#pType').onchange = drawSum;
-    $('#pAdd').onclick = () => { draft.push({ in: '', out: '', next: false }); drawRows(); };
+    $('#pAdd').onclick = () => { draft.push({ in: '', out: '', prev: false, next: false }); drawRows(); };
     $('#pClose').onclick = $('#shade').onclick = closePanel;
     $('#pSave').onclick = () => P0.fromDb ? saveDbPanel() : saveLocalPanel();
     $('#pUndo').onclick = () => {
@@ -980,13 +982,15 @@ const Store = (() => {
       delete S().overrides[P0.key]; closePanel(); refresh(); toast('Back to exactly what the file says');
     };
   }
-  function showPanel(ctx, type, note, drafts, chosenIds, rawHtml) {
+  function showPanel(ctx, type, note, drafts, chosenIds, srcHtml, rawHtml) {
     P0 = ctx;
     $('#pName').textContent = ctx.name;
-    $('#pDate').textContent = `${fmt(ctx.date)} ${ctx.date.slice(0, 4)} · ${ctx.dept || 'no team'}` + (ctx.fromDb ? ' · from the database' : '');
+    $('#pDate').textContent = `${fmt(ctx.date)} ${ctx.date.slice(0, 4)} · ${ctx.dept || 'no team'}`;
+    $('#pSrc').className = 'src ' + (ctx.fromDb ? 'db' : 'file');
+    $('#pSrc').innerHTML = srcHtml;
     $('#pType').value = type;
     $('#pNote').value = note || '';
-    draft = drafts.length || type !== 'WORK' ? drafts : [{ in: '', out: '', next: false }];   // empty day: one empty row
+    draft = drafts.length || type !== 'WORK' ? drafts : [{ in: '', out: '', prev: false, next: false }];
     chosen = chosenIds;
     $('#pRaw').innerHTML = rawHtml;
     $('#pUndo').textContent = ctx.fromDb ? 'Cancel' : 'Back to the file';
@@ -994,17 +998,22 @@ const Store = (() => {
     drawSched(); drawRows();
     $('#panel').classList.remove('hidden'); $('#shade').classList.remove('hidden');
   }
-  function openPanel(key) {                                          // from Check
+  const rawTaps = (pin, date) => {
+    if (!S().scans.length) return '';
+    const taps = S().scans.filter(s => s.pin === pin && Engine.ymd(s.ts) === date);
+    const io = v => v === 1 ? 'in' : v === 2 ? 'out' : v == null ? '' : 'code ' + v;
+    return '<b>What the machine recorded on this date</b><br>' + (taps.length ? taps.map(s => `<span>${Engine.hm(s.ts)} ${io(s.io)}</span>`).join('') : 'nothing');
+  };
+  function openPanel(key) {                                           // a day NOT in the database
     const c = M.cells.get(key); if (!c) return;
     const e = S().employees.find(x => x.pin === c.pin);
-    const taps = S().scans.filter(s => s.pin === c.pin && Engine.ymd(s.ts) === c.date);
-    const io = v => v === 1 ? 'in' : v === 2 ? 'out' : v == null ? '' : 'code ' + v;
     showPanel({ key, pin: c.pin, date: c.date, name: c.name, dept: c.dept, otOn: e.otOn,
                 shifts: S().shifts.filter(s => e.shiftIds.includes(s.id)), fromDb: false },
       c.type, c.note, Engine.sessionsToDraft(c.date, c.sessions), [...c.chosen],
-      '<b>What the machine recorded on this date</b><br>' + (taps.length ? taps.map(s => `<span>${Engine.hm(s.ts)} ${io(s.io)}</span>`).join('') : 'nothing'));
+      '📄 From the file — not in the database yet. <b>Save</b> keeps it here, then use <b>Save to database</b>.',
+      rawTaps(c.pin, c.date));
   }
-  function openDbPanel(key) {                                        // from Dashboard
+  function openDbPanel(key) {                                         // a day IN the database (or a "+" on the Dashboard)
     const [pin, date] = key.split('|'), r = DB.map.get(key), p = dbPerson(pin);
     const byName = r?.schedule ? S().shifts.filter(s => r.schedule.split(' + ').includes(s.name)) : [];
     let shifts = S().shifts.filter(s => p.shiftIds.includes(s.id));
@@ -1012,28 +1021,32 @@ const Store = (() => {
     const otOn = p.local ? p.otOn : (r?.overtime_allowed ?? true);
     showPanel({ key, pin, date, name: p.name, dept: p.dept, otOn, shifts, fromDb: true },
       r?.day_type || 'WORK', r?.note, Engine.parseInOut(r?.in_out), shifts.length > 1 ? byName.map(s => s.id) : [],
-      r ? `<b>Saved in the database</b><br><span>${new Date(r.saved_at).toLocaleString()}</span>` : '<b>Nothing saved for this day yet</b>');
+      r ? `☁ From the database (saved ${new Date(r.saved_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}). The file is ignored for this day. Saving changes the database right away.`
+        : '☁ Not in the database yet. Saving adds it to the database right away.',
+      rawTaps(pin, date));
   }
   function closePanel() { $('#panel').classList.add('hidden'); $('#shade').classList.add('hidden'); P0 = null; }
 
+  /** A Work day with no in/out is allowed (e.g. present without tapping) — but ask first. */
+  const okNoTime = (type, rows) => rows.length || type !== 'WORK' || confirm('Save this as a Work day with no in / out time?');
+
   function saveLocalPanel() {
-    S().overrides[P0.key] = { type: $('#pType').value, chosen, note: $('#pNote').value.trim(), sessions: draft.filter(r => r.in || r.out) };
+    const type = $('#pType').value, rows = draft.filter(r => r.in || r.out);
+    if (!okNoTime(type, rows)) return;
+    S().overrides[P0.key] = { type, chosen, note: $('#pNote').value.trim(), sessions: rows };
     closePanel(); refresh(); toast('Saved here — press “Save to database” to send it');
   }
   async function saveDbPanel() {
     const ctx = P0, type = $('#pType').value, note = $('#pNote').value.trim(), rows = draft.filter(r => r.in || r.out);
     const sessions = Engine.draftToSessions(ctx.date, rows, ctx.pin);
     if (sessions.some(s => s.problem)) return toast('Complete every in and out first — the database keeps complete days only');
-    if (!sessions.length && type === 'WORK') return toast('Add an in / out, or change “This day is”');
+    if (!okNoTime(type, rows)) return;
     const split = Engine.splitDay(type, sessions, ctx.date, ctx.shifts, ctx.otOn, S().shifts.filter(s => chosen.includes(s.id)));
     const rec = Engine.toRecord({ pin: ctx.pin, date: ctx.date, name: ctx.name, dept: ctx.dept, type, note, sessions, edited: true, ...split }, ctx.otOn);
     $('#pSave').disabled = true;
     try {
       await Store.pushRecords([rec]);
-      S().saved[ctx.key] = Engine.recHash(rec);
-      if (M.cells.has(ctx.key)) S().overrides[ctx.key] = { type, chosen, note, sessions: rows };   // keep Check the same
       closePanel();
-      if (M.dates.length) refresh(); else Store.save();
       await loadDb();
       toast('Saved to the database');
     } catch (e) { toast('⚠ Could not save: ' + (e.message || e)); }
@@ -1047,38 +1060,47 @@ const Store = (() => {
       `</div><span class="hint">None ticked = matched by the in/out times.</span>`;
     $$('#pSched input').forEach(i => i.onchange = () => { chosen = $$('#pSched input:checked').map(x => x.value); drawSum(); });
   }
+  /** One card per in/out: In · Out · "In is on the previous day" · "Out is on the next day". */
   function drawRows() {
     const date = P0.date, reg = regular(), ses = Engine.draftToSessions(date, draft);
+    const prevD = Engine.addDays(date, -1), nextD = Engine.addDays(date, 1);
     $('#pRows').innerHTML = draft.map((r, i) => {
       const s = ses[i];
       const quick = (!r.in ? `<button class="btn mini" data-q="${i}|in">In ${reg.start}</button>` : '')
                   + (!r.out ? `<button class="btn mini" data-q="${i}|out">Out ${reg.end}</button>` : '');
+      const dates = (r.prev || r.next)
+        ? `<span class="nd">in ${fmt(r.prev ? prevD : date)} → out ${fmt(r.next ? nextD : date)}</span>` : '<span></span>';
       return `<div class="io ${s.problem ? 'bad' : ''}">
-        <div class="r"><label>In<input type="time" data-i="${i}" data-f="in" value="${r.in}"></label>
-          <label>Out<input type="time" data-i="${i}" data-f="out" value="${r.out}"></label>
+        <div class="r"><label>In${r.prev ? ` · ${fmtShort(prevD)}` : ''}<input type="time" data-i="${i}" data-f="in" value="${r.in}"></label>
+          <label>Out${r.next ? ` · ${fmtShort(nextD)}` : ''}<input type="time" data-i="${i}" data-f="out" value="${r.out}"></label>
           <button class="del" data-del="${i}" title="Remove">🗑</button></div>
-        <div class="x"><label><input type="checkbox" data-i="${i}" data-f="next" ${r.next ? 'checked' : ''}> Out is on the next day</label>
-          <span>${r.next ? `<span class="nd">out on ${fmt(Engine.addDays(date, 1))}</span> · ` : ''}${s.durMin != null ? hrs(s.durMin) : s.problem}</span></div>
+        <div class="x">
+          <label><input type="checkbox" data-i="${i}" data-f="prev" ${r.prev ? 'checked' : ''}> In is on the previous day</label>
+          <label><input type="checkbox" data-i="${i}" data-f="next" ${r.next ? 'checked' : ''}> Out is on the next day</label>
+        </div>
+        <div class="x">${dates}<span>${s.durMin != null ? hrs(s.durMin) : s.problem}</span></div>
         ${quick ? `<div class="quick">${quick}</div>` : ''}</div>`;
-    }).join('') || '<p class="hint">No in / out on this date. Press “＋ Add in / out”.</p>';
+    }).join('') || '<p class="hint">No in / out on this date. Press “＋ Add in / out”, or leave it empty for a day with no time.</p>';
     $$('#pRows input').forEach(inp => {
-      inp.oninput = () => { if (inp.dataset.f !== 'next') { draft[+inp.dataset.i][inp.dataset.f] = inp.value; drawSum(); } };
-      inp.onchange = () => { const r = draft[+inp.dataset.i]; if (inp.dataset.f === 'next') r.next = inp.checked; else r[inp.dataset.f] = inp.value; drawRows(); };
+      const f = inp.dataset.f, box = f === 'prev' || f === 'next';
+      inp.oninput = () => { if (!box) { draft[+inp.dataset.i][f] = inp.value; drawSum(); } };
+      inp.onchange = () => { const r = draft[+inp.dataset.i]; r[f] = box ? inp.checked : inp.value; drawRows(); };
     });
     $$('#pRows [data-del]').forEach(b => b.onclick = () => { draft.splice(+b.dataset.del, 1); drawRows(); });
     $$('#pRows [data-q]').forEach(b => b.onclick = () => {
       const [i, side] = b.dataset.q.split('|'), r = draft[+i], g = regular();
-      if (side === 'in') r.in = g.start; else { r.out = g.end; r.next = false; }
+      if (side === 'in') { r.in = g.start; r.prev = false; } else { r.out = g.end; r.next = false; }
       drawRows();
     });
     drawSum();
   }
   function drawSum() {
-    const date = P0.date;
-    const r = Engine.splitDay($('#pType').value, Engine.draftToSessions(date, draft), date, P0.shifts, P0.otOn, S().shifts.filter(s => chosen.includes(s.id)));
+    const date = P0.date, type = $('#pType').value;
+    const r = Engine.splitDay(type, Engine.draftToSessions(date, draft), date, P0.shifts, P0.otOn, S().shifts.filter(s => chosen.includes(s.id)));
     let note;
-    if (r.why === 'OT_OFF') note = `${esc(P0.name)} is not allowed overtime (Settings → People), so overtime is 0.`;
-    else if (r.why === 'DAY_OFF') note = 'Day off / holiday: every worked minute is also overtime.';
+    if (!draft.some(x => x.in || x.out)) note = `No in / out time — this day counts as 1 <b>${Engine.DAY_TYPES[type]}</b> day, 0 hours.`;
+    else if (r.why === 'OT_OFF') note = `${esc(P0.name)} is not allowed overtime (Settings → People), so overtime is 0.`;
+    else if (r.why === 'DAY_OFF') note = `${Engine.DAY_TYPES[type]}: every worked minute is also overtime.`;
     else if (r.why === 'NO_SCHEDULE') note = 'This person has no schedule — pick one in Settings → People.';
     else if (!r.line) note = 'Fill in both the in and the out to count the hours.';
     else {
@@ -1089,7 +1111,7 @@ const Store = (() => {
       <div class="l o"><span>of which overtime</span><b>${P0.otOn ? hrs(r.otMin) : 'not allowed'}</b></div><div class="n">${note}</div>`;
   }
 
-  /* ============================ SETTINGS ============================ */
+  /* ---------------- SETTINGS ---------------- */
   function wireSettings() {
     $('#addShift').onclick = () => { S().shifts.push({ id: 'X' + Date.now(), name: 'New schedule', start: '08:00', end: '17:00' }); refresh(); drawSettings(); };
     $('#dbTest').onclick = checkDb;
@@ -1097,7 +1119,7 @@ const Store = (() => {
       const f = e.target.files[0]; e.target.value = ''; if (!f) return;
       try { Store.restore(await f.text()); refresh(); toast('Backup restored'); } catch (err) { toast('⚠ ' + err.message); }
     };
-    $('#clearAll').onclick = () => { if (confirm('Clear the file and your Check fixes from this browser? (The database is not touched.)')) { Store.reset(); location.reload(); } };
+    $('#clearAll').onclick = () => { if (confirm('Clear the file and your unsaved fixes from this browser? (The database is not touched.)')) { Store.reset(); location.reload(); } };
   }
   async function checkDb() {
     const pill = $('#dbState');
@@ -1139,25 +1161,26 @@ const Store = (() => {
     checkDb();
   }
 
-  /* ============================ SAVE + EXPORT ============================ */
-  /** Sends only the blue-dot days (new or changed). Same person + date = updated, never duplicated. */
+  /* ---------------- SAVE + EXPORT ---------------- */
+  /** Sends only days NOT in the database. Reloads the database first, so a day
+   *  another computer saved a moment ago is never overwritten with raw file data. */
   async function saveToDb() {
     if (!M.dates.length) return toast('Add a file first');
+    const b = $('#btnSave'); b.disabled = true; b.textContent = 'Checking the database…';
+    await loadDb();
+    if (DB.error) { b.disabled = false; markUnsaved(); return toast('⚠ Could not reach the database: ' + DB.error); }
     const all = [...M.cells.values()], todo = all.filter(c => c.unsaved);
-    const miss = all.filter(c => c.status === 'miss').length, stale = all.filter(c => c.stale).length;
-    if (!todo.length) return toast(miss ? `Nothing new to save · ${miss} days still have a missing time` : 'Everything is already saved');
-    const b = $('#btnSave'); b.disabled = true; b.textContent = 'Saving…';
+    const miss = all.filter(c => c.status === 'miss').length;
+    if (!todo.length) { b.disabled = false; markUnsaved(); return toast(miss ? `Nothing new to save · ${miss} days still have a missing time` : 'Everything is already in the database'); }
+    b.textContent = 'Saving…';
     try {
       await Store.pushRecords(todo.map(c => c.rec));
-      todo.forEach(c => S().saved[c.key] = Engine.recHash(c.rec));
-      markSaved(); drawCheck(); Store.save();
-      if (DB.at) await loadDb();
-      toast(`${todo.length} day(s) saved` + (miss ? ` · ${miss} with a missing time were not sent` : '')
-        + (stale ? ` · ${stale} saved day(s) now have ??, the database keeps the older version` : ''));
-    } catch (e) { toast('⚠ Could not save: ' + (e.message || e)); markSaved(); }
-    b.disabled = false;
+      todo.forEach(c => delete S().overrides[c.key]);
+      await loadDb();
+      toast(`${todo.length} day(s) saved` + (miss ? ` · ${miss} with a missing time were not sent` : ''));
+    } catch (e) { toast('⚠ Could not save: ' + (e.message || e)); }
+    b.disabled = false; markUnsaved();
   }
-
   const dec = m => +(m / 60).toFixed(2);
   async function exportFile(kind) {
     if (kind === 'backup') {
@@ -1176,9 +1199,10 @@ const Store = (() => {
       'Fixed by hand': r.edited ? 'YES' : '', Note: r.note, 'Saved at': new Date(r.saved_at).toLocaleString() }));
     else {
       const per = new Map();
-      for (const r of list) { const p = per.get(r.pin) || { Name: r.name, Team: r.dept, 'Days saved': 0, w: 0, o: 0 };
-        p['Days saved']++; p.w += r.working_minutes; p.o += r.overtime_minutes; per.set(r.pin, p); }
-      rows = [...per.values()].sort((x, y) => x.Name.localeCompare(y.Name)).map(({ w, o, ...p }) => ({ ...p, 'Working hours (total)': dec(w), 'of which overtime': dec(o) }));
+      for (const r of list) { if (!per.has(r.pin)) per.set(r.pin, { name: r.name, dept: r.dept, t: emptyTotals() }); addRow(per.get(r.pin).t, r); }
+      rows = [...per.values()].sort((x, y) => x.name.localeCompare(y.name)).map(({ name, dept, t }) => ({
+        Name: name, Team: dept, 'Work day': t.WORK, 'Day off': t.OFF, 'Annual leave': t.LEAVE, Sick: t.SICK, Absent: t.ABSENT,
+        'Working hours (total)': dec(t.work), 'of which overtime': dec(t.ot) }));
     }
     const wb = XLSX.utils.book_new(), ws = XLSX.utils.json_to_sheet(rows);
     ws['!cols'] = Object.keys(rows[0]).map(k => ({ wch: Math.max(12, k.length + 2) }));
@@ -1187,7 +1211,6 @@ const Store = (() => {
   }
   function download(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
 
-  /* ============================ HELPERS ============================ */
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const isSun = d => new Date(d + 'T00:00:00').getDay() === 0;
   const fmt = d => `${new Date(d + 'T00:00:00').toLocaleDateString('en', { weekday: 'short' })} ${d.slice(8)}/${d.slice(5, 7)}`;
@@ -1199,7 +1222,6 @@ const Store = (() => {
 
   boot();
 })();
-
 </script>
 </body>
 </html>
