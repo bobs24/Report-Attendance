@@ -1,5 +1,5 @@
 # Publishes index.html to GitHub Pages on every push to main.
-# One-time setup: repo Settings -> Pages -> Source = "GitHub Actions".
+# One-time: repo Settings -> Pages -> Source = "GitHub Actions".
 name: Deploy
 on:
   push: { branches: [main] }
@@ -11,8 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: { name: github-pages, url: '${{ steps.d.outputs.page_url }}' }
     steps:
-      - uses: actions/checkout@v4                # get the repo files
-      - uses: actions/upload-pages-artifact@v3   # package the folder
+      - uses: actions/checkout@v4
+      - uses: actions/upload-pages-artifact@v3
         with: { path: . }
       - id: d
-        uses: actions/deploy-pages@v4            # publish it
+        uses: actions/deploy-pages@v4

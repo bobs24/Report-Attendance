@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Attendance v9</title>
+<title>Attendance v1.3</title>
 <style>
 /* teal = from database · green complete · blue fixed · amber missing · orange overtime · grey off */
 :root{
@@ -19,6 +19,19 @@ small,.hint{color:var(--mut);font-size:12px}
 .hidden{display:none!important} .grow{flex:1}
 input,select,textarea{font:inherit;font-size:13px;color:var(--txt);background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 9px}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
+
+/* ---------- login ---------- */
+.login{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#eef2fb,#f6f7fa);z-index:500}
+.lbox{background:#fff;border:1px solid var(--line);border-radius:16px;padding:28px;width:min(380px,92vw);box-shadow:0 10px 40px rgba(40,50,80,.12)}
+.lbox h2{font-size:18px;margin-bottom:4px} .lbox p{margin:0 0 18px;color:var(--mut);font-size:13px}
+.lbox label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--mut);margin-bottom:12px}
+.lbox input{padding:9px 11px;font-size:14px}
+.lbox .btn{width:100%;padding:10px;font-size:14px;margin-top:4px}
+.lbox .msg{font-size:12.5px;margin-top:12px;min-height:18px}
+.lbox .msg.bad{color:var(--red)} .lbox .msg.ok{color:var(--green)}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:11px;font-size:14px;font-weight:600;border:1px solid #dadce0}
+.gbtn:hover{background:#f8f9fb}
+
 .top{display:flex;align-items:center;gap:18px;padding:10px 20px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50}
 .brand{font-size:15px;display:flex;gap:8px;align-items:baseline}
 .ver{font-size:10.5px;background:var(--blue-s);color:var(--blue);border-radius:8px;padding:1px 6px;font-weight:600}
@@ -26,6 +39,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 .tab{border:0;background:none;padding:7px 16px;border-radius:8px;cursor:pointer;color:var(--mut);font:inherit;font-weight:500}
 .tab.on{background:#fff;color:var(--blue);box-shadow:0 1px 5px rgba(40,50,80,.1)}
 .actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+.who{font-size:12px;color:var(--mut);text-align:right;line-height:1.25} .who b{color:var(--txt);font-weight:600}
 .btn{border:1px solid var(--line);background:#fff;padding:7px 13px;border-radius:9px;cursor:pointer;font:inherit;font-size:13px;font-weight:500;color:var(--txt);white-space:nowrap}
 .btn:hover{background:var(--soft)} .btn:disabled{opacity:.6;cursor:default}
 .btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
@@ -66,7 +80,6 @@ table.grid{width:100%;border-collapse:separate;border-spacing:0;table-layout:fix
 .grid .nm small{display:block;font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .grid td{padding:3px;vertical-align:middle;text-align:center} .grid td.sun{background:#fdf9f9}
 .grid tbody tr:hover td,.grid tbody tr:hover .nm{background:#fbfcfe}
-/* summary columns frozen on the right (positions set inline) */
 .grid .tot{position:sticky;z-index:4;background:#fff;text-align:right;padding:6px 8px;font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums}
 .grid .tot.first{border-left:2px solid var(--line)}
 .grid .tot.cnt{text-align:center;color:#5a6378}
@@ -90,7 +103,8 @@ table.grid{width:100%;border-collapse:separate;border-spacing:0;table-layout:fix
 .cell.off{background:var(--grey-s)} .cell.off .t{color:var(--mut);font-weight:500}
 .cell.none{background:#fff;border:1px dashed var(--line)} .cell.none .t{color:#b9c0cd;font-weight:500;font-size:11px}
 .cell.unsaved::after{content:'';position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--blue)}
-.box{display:flex;align-items:center;justify-content:center;height:24px;width:100%;max-width:34px;margin:auto;border-radius:6px;font-size:10.5px;font-weight:700;font-style:normal;border:1px solid transparent}
+.box{position:relative;display:flex;align-items:center;justify-content:center;height:24px;width:100%;max-width:34px;margin:auto;border-radius:6px;font-size:10.5px;font-weight:700;font-style:normal;border:1px solid transparent}
+.box sup{font-size:8.5px;margin-left:1px}
 .legend .box{display:inline-flex;width:22px;height:20px;margin-right:5px}
 .box.ok{background:var(--green-s);color:var(--green);border-color:#cfeede}
 .box.edit{background:var(--blue-s);color:var(--blue);border-color:#cfdcfc}
@@ -110,7 +124,7 @@ table.grid{width:100%;border-collapse:separate;border-spacing:0;table-layout:fix
 table.data{width:100%;border-collapse:collapse;font-size:12.5px}
 .data th{background:var(--soft);text-align:left;padding:8px 10px;font-weight:600;border-bottom:1px solid var(--line)}
 .data td{padding:6px 10px;border-bottom:1px solid var(--line2)}
-.data input[type=text],.data input[type=time]{width:100%}
+.data input[type=text],.data input[type=time],.data input[type=email]{width:100%}
 .sched,.pick{display:flex;gap:5px;flex-wrap:wrap}
 .sched label,.pick label{display:inline-flex;gap:4px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:2px 9px;cursor:pointer;font-size:12px;background:var(--soft)}
 .sched label:has(input:checked),.pick label:has(input:checked){background:var(--blue-s);border-color:#c7d6fb;color:var(--blue)}
@@ -143,15 +157,29 @@ table.data{width:100%;border-collapse:collapse;font-size:12.5px}
 .tip{position:fixed;z-index:200;background:#2b3040;color:#fff;border-radius:10px;padding:9px 12px;font-size:12px;pointer-events:none;min-width:180px}
 .tip .h{font-weight:600;margin-bottom:4px} .tip .l{display:flex;justify-content:space-between;gap:14px;opacity:.9}
 .tip .l.o{color:#ffb98f;opacity:1} .tip .l.c{color:#9ee6ef;opacity:1}
-.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#2b3040;color:#fff;border-radius:10px;padding:10px 18px;font-size:13px;z-index:300;max-width:90vw}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#2b3040;color:#fff;border-radius:10px;padding:10px 18px;font-size:13px;z-index:600;max-width:90vw}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
 
+<!-- ============ LOGIN (nothing else is shown until you are signed in) ============ -->
+<div id="login" class="login">
+  <div class="lbox">
+    <h2>🕐 Attendance <span class="ver">v1.3</span></h2>
+    <p>Sign in with your Google account. Only approved emails can enter.</p>
+    <button id="lGoogle" class="btn gbtn" type="button">
+      <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
+      Sign in with Google
+    </button>
+    <div id="lMsg" class="msg"></div>
+  </div>
+</div>
+
+<div id="app" class="hidden">
 <header class="top">
-  <div class="brand">🕐 <b>Attendance</b> <span class="ver">v9</span> <small id="period">no file yet</small></div>
+  <div class="brand">🕐 <b>Attendance</b> <span class="ver">v1.3</span> <small id="period">no file yet</small></div>
   <nav class="tabs">
     <button class="tab on" data-v="check">1 · Check</button>
     <button class="tab" data-v="dash">2 · Dashboard</button>
@@ -168,6 +196,8 @@ table.data{width:100%;border-collapse:collapse;font-size:12.5px}
       </div>
     </div>
     <button id="btnSave" class="btn primary">Save to database</button>
+    <div class="who"><b id="whoEmail"></b><br><span id="whoRole"></span></div>
+    <button id="btnOut" class="btn">Sign out</button>
   </div>
 </header>
 
@@ -216,7 +246,8 @@ table.data{width:100%;border-collapse:collapse;font-size:12.5px}
   </div>
   <p id="showing" class="showing"></p>
   <div class="legend pad">
-    <span><i class="box ok">✓</i>Work day</span><span><i class="box ot">✓</i>With overtime</span>
+    <span><i class="box ok">✓</i>Work day</span><span><i class="box ok">✓<sup>2</sup></i>Counts 2 work days</span>
+    <span><i class="box ot">✓</i>With overtime</span>
     <span><i class="box off">O</i>Day off</span><span><i class="box off">AL</i>Annual leave</span>
     <span><i class="box sick">S</i>Sick</span><span><i class="box abs">A</i>Absent</span>
     <span><i class="box none">＋</i>Not saved</span>
@@ -225,8 +256,12 @@ table.data{width:100%;border-collapse:collapse;font-size:12.5px}
   <div id="dashGrid" class="gridwrap"></div>
 </main>
 
-<!-- ============ SETTINGS ============ -->
+<!-- ============ SETTINGS (shared by everyone) ============ -->
 <main id="v-set" class="view hidden">
+  <div class="dbbar">
+    <span id="setState" class="pill teal">☁ Settings are shared</span>
+    <span class="hint">Schedules and People are saved in the database — everyone who signs in sees the same.</span>
+  </div>
   <div class="card">
     <h3>Schedules <small>— overtime starts after the end time</small></h3>
     <div id="shiftTable"></div>
@@ -236,29 +271,38 @@ table.data{width:100%;border-collapse:collapse;font-size:12.5px}
     <h3>People <small>— tick every schedule a person works, and whether overtime is allowed</small></h3>
     <div id="peopleTable"></div>
   </div>
+  <div id="usersCard" class="card hidden">
+    <h3>Users <small>— who may sign in (admin only)</small></h3>
+    <div id="userTable"></div>
+    <div class="row">
+      <input id="newUser" type="email" placeholder="name@company.com" style="min-width:240px" />
+      <select id="newRole"><option value="USER">USER</option><option value="ADMIN">ADMIN</option></select>
+      <button id="addUser" class="btn">＋ Add user</button>
+      <span class="hint">They then open the link and press “Sign in with Google” with that same email.</span>
+    </div>
+  </div>
   <div class="card">
     <h3>How it works</h3>
     <ul class="rules">
       <li><b>The database is the truth.</b> If a person + date is already in the database, Check shows the database version (☁) and ignores the file for that day.</li>
       <li>Days not in the database come from the file. Fix them, then <b>Save to database</b>.</li>
       <li>Editing a ☁ day (in Check or Dashboard) changes the database immediately.</li>
-      <li>A day can be <b>Work day, Day off, Annual leave, Sick or Absent</b>, with or without in/out times. The Dashboard counts each in days.</li>
-      <li><b>In is on the previous day</b> / <b>Out is on the next day</b> let one in/out cross midnight; the real dates are shown.</li>
+      <li>On the Dashboard, <b>Work day</b> counts days that have an in and an out. A <b>second</b> in/out that runs into the next day (or starts the day before) counts as one more work day for that other date — but each calendar date is counted only once.</li>
       <li><b>Working hours</b> = total time on the clock, overtime included. <b>Overtime</b> = the part after the schedule end, from minute 0. Early never counts.</li>
       <li><b>Day off</b>: every worked minute is overtime. <b>Overtime allowed</b> not ticked: overtime 0.</li>
     </ul>
   </div>
   <div class="card">
-    <h3>Database <small>— Supabase, set in the code (search SUPABASE_URL)</small></h3>
+    <h3>My account</h3>
     <div class="row">
-      <span id="dbState" class="pill">checking…</span>
-      <span id="dbUrl" class="hint"></span>
+      <span class="hint">Signed in with Google.</span>
       <div class="grow"></div>
+      <span id="dbState" class="pill">checking…</span>
       <button id="dbTest" class="btn">Test connection</button>
     </div>
   </div>
   <div class="card">
-    <h3>Files and backup</h3>
+    <h3>Files and backup <small>— the raw file stays in this browser only</small></h3>
     <div id="fileTable"></div>
     <div class="row">
       <label class="btn">Restore a backup<input id="restore" type="file" accept=".json" hidden /></label>
@@ -267,6 +311,7 @@ table.data{width:100%;border-collapse:collapse;font-size:12.5px}
     </div>
   </div>
 </main>
+</div>
 
 <!-- ============ EDIT PANEL ============ -->
 <aside id="panel" class="panel hidden">
@@ -320,7 +365,6 @@ const Engine = (() => {
     { id: 'S2',  name: 'Shift 2', start: '22:00', end: '06:00' },
     { id: 'S3',  name: 'Shift 3', start: '00:00', end: '08:00' },
   ];
-  /* the 5 remarks (keys stay the same, so rows already in the database keep working) */
   const DAY_TYPES = { WORK: 'Work day', OFF: 'Day off', LEAVE: 'Annual leave', SICK: 'Sick', ABSENT: 'Absent' };
 
   const pad = n => String(n).padStart(2, '0');
@@ -440,8 +484,7 @@ const Engine = (() => {
     else problem = inTs ? 'No clock-out' : 'No clock-in';
     return { pin, date, inTs, outTs, durMin, problem };
   }
-  /** What the user typed -> pairs.
-   *  prev = the IN is on the day BEFORE this date · next = the OUT is on the day AFTER. */
+  /** prev = the IN is on the day BEFORE this date · next = the OUT is on the day AFTER. */
   const draftToSessions = (date, draft, pin = '') => draft.map(d => makeSession(pin, date,
     d.in ? at(d.prev ? addDays(date, -1) : date, d.in) : null,
     d.out ? at(d.next ? addDays(date, 1) : date, d.out) : null));
@@ -450,7 +493,6 @@ const Engine = (() => {
     prev: !!(s.inTs && ymd(s.inTs) < date),
     next: !!(s.outTs && ymd(s.outTs) > date) }));
 
-  /* workMin = total on the clock (overtime included) · otMin = part after the schedule end */
   function windows(date, sh) {
     return [-1, 0, 1].map(off => { const start = at(addDays(date, off), sh.start);
       return { sh, start, end: new Date(start.getTime() + shiftLen(sh) * 60000) }; });
@@ -487,7 +529,6 @@ const Engine = (() => {
     return { ...res, otMin: ot, why: ot ? 'AFTER' : 'NONE' };
   }
 
-  /* status: db = in the database · miss = "??" · ok · edit · off · none */
   function buildCells(sessions, emps, dates, shifts, overrides) {
     const cells = new Map();
     for (const e of emps) for (const d of dates)
@@ -506,7 +547,7 @@ const Engine = (() => {
       c.status = c.problems.length ? 'miss'
                : c.sessions.length ? (c.edited ? 'edit' : 'ok')
                : c.type !== 'WORK' ? 'off'
-               : c.edited ? 'edit' : 'none';          // a Work day set by hand with no time is a real entry
+               : c.edited ? 'edit' : 'none';
     }
     return cells;
   }
@@ -526,7 +567,6 @@ const Engine = (() => {
     return c;
   }
 
-  /** One in/out as stored text: "(-1)22:00-06:00", "09:00-16:00", "22:46-07:17 (+1)" */
   const ioText = (s, date) => `${s.inTs && ymd(s.inTs) < date ? '(-1)' : ''}${hm(s.inTs)}-${hm(s.outTs)}${s.outTs && ymd(s.outTs) > date ? ' (+1)' : ''}`;
 
   function toRecord(c, otOn) {
@@ -548,24 +588,55 @@ const Engine = (() => {
     });
   }
 
+  /**
+   * WORK DAY COUNT (Dashboard).
+   * Each saved Work day with a complete in/out claims its own date.
+   * A SECOND (or later) in/out on that day that ends on the next day claims the
+   * next date too (starts on the day before -> claims the day before).
+   * A date that is already claimed is never counted again.
+   *   14th: 09:00-17:00 + 17:00-03:00(+1)  -> claims 14 and 15 = 2 days
+   *   15th: 17:00-22:00                    -> 15 already claimed = 0 more
+   *   A single night shift 22:00-06:00(+1) -> 1 day only
+   * rows = one person's saved rows. Returns { total, perDate: {date: credit} }.
+   */
+  function countWorkDays(rows) {
+    const claimed = new Set(), perDate = {};
+    let total = 0;
+    const claim = d => { if (claimed.has(d)) return 0; claimed.add(d); return 1; };
+    for (const r of [...rows].sort((a, b) => a.work_date.localeCompare(b.work_date))) {
+      const io = parseInOut(r.in_out).filter(x => x.in && x.out);
+      if ((r.day_type || 'WORK') !== 'WORK' || !io.length || !(r.working_minutes > 0)) { perDate[r.work_date] = 0; continue; }
+      let c = claim(r.work_date);
+      io.slice(1).forEach(x => {
+        if (x.next) c += claim(addDays(r.work_date, 1));
+        if (x.prev) c += claim(addDays(r.work_date, -1));
+      });
+      perDate[r.work_date] = c;
+      total += c;
+    }
+    return { total, perDate };
+  }
+
   return { DEFAULT_SHIFTS, DAY_TYPES, parseWorkbook, analyseImport, deriveEmployees, defaultSchedules,
            buildSessions, draftToSessions, sessionsToDraft, splitDay, buildCells, applyDbRow, toRecord, parseInOut,
-           ymd, hm, toMin, addDays, camelName, monthLabel, shiftLen };
+           countWorkDays, ymd, hm, toMin, addDays, camelName, monthLabel, shiftLen };
 })();
 </script>
 
 <script>
 /* ============================================================================
- * STORE — the DATABASE is the truth. This browser only keeps the raw file and
- * fixes for days that are NOT in the database yet.
+ * STORE
+ *  - Records + SHARED SETTINGS live in Supabase (everyone sees the same).
+ *  - Only the raw file and unsaved fixes stay in this browser.
+ *  - Every call needs a signed-in user that is listed (and active) in app_users.
  * ==========================================================================*/
 const SUPABASE_URL = 'https://ruzzyvloaqbjzwzwwkzv.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1enp5dmxvYXFianp3end3a3p2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAzMTY3NDEsImV4cCI6MjEwNTg5Mjc0MX0.vysB6fDeBunk2YsWRSjp1Q3Psc2Qb3_rbanF26BPHmw';
-const SUPABASE_TABLE = 'attendance_records';
+const T_RECORDS = 'attendance_records', T_SETTINGS = 'app_settings', T_USERS = 'app_users';
 
 const Store = (() => {
-  const KEY = 'attendance_v9';
-  const OLD_KEYS = ['attendance_v8', 'attendance_v7', 'attendance_v6'];     // older versions, copied over once
+  const KEY = 'attendance_v1_3';
+  const OLD_KEYS = ['attendance_v1_2', 'attendance_v9', 'attendance_v8', 'attendance_v7', 'attendance_v6'];
   const blank = () => ({ files: [], scans: [], employees: [], shifts: Engine.DEFAULT_SHIFTS.map(s => ({ ...s })), overrides: {} });
   let state = blank(), client = null;
 
@@ -582,68 +653,209 @@ const Store = (() => {
 
   function connect() { client = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null; return !!client; }
   const need = () => { if (!client) throw new Error('The Supabase library did not load (no internet, or cdn.jsdelivr.net is blocked).'); };
+  const chk = ({ data, error }) => { if (error) throw error; return data; };
+
+  /* ---------- sign in ---------- */
+  async function session() { need(); return (await client.auth.getSession()).data.session; }
+  /** Opens Google, then comes back to this same page already signed in. */
+  async function signInGoogle() {
+    need();
+    chk(await client.auth.signInWithOAuth({ provider: 'google',
+      options: { redirectTo: location.origin + location.pathname, queryParams: { prompt: 'select_account' } } }));
+  }
+  async function signOut() { if (client) await client.auth.signOut(); }
+  const onAuth = fn => client && client.auth.onAuthStateChange((ev, ses) => fn(ev, ses));
+  /** true if the email is on the allowed list (asked before sign-up) */
+  async function canLogin(email) { need(); return !!chk(await client.rpc('can_login', { p_email: email })); }
+  /** 'ADMIN' / 'USER' for the signed-in user, or null if not allowed */
+  async function myRole() { need(); return chk(await client.rpc('my_role')); }
+
+  /* ---------- records ---------- */
   async function test() {
     try { need(); } catch (e) { return e.message; }
-    const { error } = await client.from(SUPABASE_TABLE).select('pin', { head: true, count: 'exact' }).limit(1);
+    const { error } = await client.from(T_RECORDS).select('pin', { head: true, count: 'exact' }).limit(1);
     return error ? error.message : '';
   }
-  /** Same person + same date = UPDATED, never duplicated. */
   async function pushRecords(rows) {
     need();
-    for (let i = 0; i < rows.length; i += 500) {
-      const { error } = await client.from(SUPABASE_TABLE)
-        .upsert(rows.slice(i, i + 500).map(r => ({ ...r, saved_at: new Date().toISOString() })), { onConflict: 'pin,work_date' });
-      if (error) throw error;
-    }
+    for (let i = 0; i < rows.length; i += 500)
+      chk(await client.from(T_RECORDS).upsert(rows.slice(i, i + 500).map(r => ({ ...r, saved_at: new Date().toISOString() })), { onConflict: 'pin,work_date' }));
     return rows.length;
   }
   async function fetchRecords() {
     need();
     const all = [];
     for (let from = 0; ; from += 1000) {
-      const { data, error } = await client.from(SUPABASE_TABLE).select('*').order('work_date').order('pin').range(from, from + 999);
-      if (error) throw error;
+      const data = chk(await client.from(T_RECORDS).select('*').order('work_date').order('pin').range(from, from + 999));
       all.push(...data);
       if (data.length < 1000) return all;
     }
   }
-  return { get state() { return state; }, save, load, reset, backup, restore, connect, test, pushRecords, fetchRecords, url: SUPABASE_URL };
+
+  /* ---------- shared settings (one row, id = 'global') ---------- */
+  async function fetchSettings() {
+    need();
+    const row = chk(await client.from(T_SETTINGS).select('payload, updated_at, updated_by').eq('id', 'global').maybeSingle());
+    return row || null;
+  }
+  async function saveSettings(payload, by) {
+    need();
+    chk(await client.from(T_SETTINGS).upsert({ id: 'global', payload, updated_at: new Date().toISOString(), updated_by: by }, { onConflict: 'id' }));
+  }
+
+  /* ---------- users (admin) ---------- */
+  async function listUsers() { need(); return chk(await client.from(T_USERS).select('*').order('email')); }
+  async function upsertUser(u) { need(); chk(await client.from(T_USERS).upsert(u, { onConflict: 'email' })); }
+
+  return { get state() { return state; }, save, load, reset, backup, restore, connect,
+           session, signInGoogle, signOut, onAuth, canLogin, myRole,
+           test, pushRecords, fetchRecords, fetchSettings, saveSettings, listUsers, upsertUser, url: SUPABASE_URL };
 })();
 </script>
 
 <script>
 /* ============================================================================
- * APP — THE RULE: the database is the truth.
- *  - Check loads the database first. A person + date already in the database
- *    is shown FROM THE DATABASE (☁); the file is ignored for that day.
- *  - Days NOT in the database come from the file; "Save to database" sends only those.
- *  - Editing a ☁ day (Check or Dashboard) writes to the database immediately.
+ * APP
+ *  - Login first. Nothing is shown, loaded or saved until you are signed in.
+ *  - The database is the truth for records AND settings.
  * ==========================================================================*/
 (() => {
   const $  = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
   const S  = () => Store.state;
 
+  let ME = { email: '', role: '' };
   let M = { emps: [], cells: new Map(), dates: [], fromDb: 0 };
   const DB = { rows: [], map: new Map(), people: [], dates: [], at: null, busy: false, error: '' };
+  const SET = { payload: null, shiftsDirty: false, dirty: new Set(), timer: null, at: null, by: '' };
   let onlyMissing = false;
   let F = { from: '', to: '', teams: new Set(), find: '' };
   let P0 = null, draft = [], chosen = [];
   let pending = null;
+  let started = false;
 
-  function boot() {
-    Store.load(); Store.connect();
-    wireTabs(); wireTop(); wireFile(); wireAsk(); wirePanel(); wireDash(); wireSettings();
-    if (S().scans.length) refresh(); else markUnsaved();
-    loadDb();                                                         // database first — it wins
+  /* ============================ LOGIN ============================ */
+  function wireLogin() {
+    $('#lGoogle').onclick = async () => {
+      $('#lGoogle').disabled = true; lmsg('Opening Google…');
+      try { await Store.signInGoogle(); }                         // the page leaves to Google here
+      catch (err) { lmsg(String(err.message || err), 'bad'); $('#lGoogle').disabled = false; }
+    };
+    $('#btnOut').onclick = async () => { await Store.signOut(); location.replace(location.pathname); };
+  }
+  const lmsg = (t, cls = '') => { $('#lMsg').textContent = t; $('#lMsg').className = 'msg ' + cls; };
+
+  /** Signed in with Supabase -> check the allowed list -> open the app. */
+  async function afterLogin() {
+    const ses = await Store.session();
+    if (!ses) return showLogin();
+    const role = await Store.myRole().catch(() => null);
+    if (!role) {
+      await Store.signOut();
+      showLogin();
+      return lmsg(`${ses.user.email} is not allowed (or was disabled). Ask the admin, or sign in with another Google account.`, 'bad');
+    }
+    ME = { email: ses.user.email, role };
+    $('#whoEmail').textContent = ME.email;
+    $('#whoRole').textContent = role === 'ADMIN' ? 'Admin' : 'User';
+    $('#usersCard').classList.toggle('hidden', role !== 'ADMIN');
+    $('#login').classList.add('hidden');
+    $('#app').classList.remove('hidden');
+    startApp();
+  }
+  function showLogin() { $('#app').classList.add('hidden'); $('#login').classList.remove('hidden'); $('#lGoogle').disabled = false; }
+
+  async function boot() {
+    Store.load();
+    wireLogin();
+    if (!Store.connect()) { showLogin(); return lmsg('The Supabase library did not load (no internet, or cdn.jsdelivr.net is blocked).', 'bad'); }
+    // coming back from Google: the page URL carries the result — show any error, then tidy the URL
+    const back = new URLSearchParams(location.hash.slice(1) + '&' + location.search.slice(1));
+    if (back.get('error_description')) lmsg(back.get('error_description').replace(/\+/g, ' '), 'bad');
+    Store.onAuth((ev) => { if (ev === 'SIGNED_IN' && !started) afterLogin().catch(e => lmsg(String(e.message || e), 'bad')); });
+    try { await afterLogin(); } catch (e) { showLogin(); lmsg(String(e.message || e), 'bad'); }
+    if (location.hash || location.search) history.replaceState(null, '', location.pathname);
   }
 
-  /** File + local fixes, then every day that exists in the database is replaced by the database. */
+  async function startApp() {
+    if (started) return;
+    started = true;
+    wireTabs(); wireTop(); wireFile(); wireAsk(); wirePanel(); wireDash(); wireSettings();
+    await loadSettings();
+    if (S().scans.length) refresh(); else markUnsaved();
+    loadDb();
+  }
+
+  /* ============================ SHARED SETTINGS ============================ */
+  /** Read the shared settings and apply them on top of this browser. */
+  async function loadSettings() {
+    try {
+      const row = await Store.fetchSettings();
+      SET.payload = row?.payload || null;
+      SET.at = row?.updated_at ? new Date(row.updated_at) : null;
+      SET.by = row?.updated_by || '';
+      applySettings(SET.payload);
+      drawSetState();
+    } catch (e) { $('#setState').className = 'pill bad'; $('#setState').textContent = '✕ Settings: ' + (e.message || e); }
+  }
+  function applySettings(p) {
+    if (!p) return;
+    const st = S();
+    if (Array.isArray(p.shifts) && p.shifts.length) st.shifts = p.shifts.map(s => ({ ...s }));
+    const valid = new Set(st.shifts.map(s => s.id));
+    for (const [pin, v] of Object.entries(p.people || {})) {
+      let e = st.employees.find(x => x.pin === pin);
+      if (!e) { e = { pin, nip: '', name: v.name || pin, jabatan: '', dept: '', tugas: '', shiftIds: [], otOn: true, show: true }; st.employees.push(e); }
+      e.name = v.name || e.name;
+      if (v.jabatan != null) e.jabatan = v.jabatan;
+      if (v.dept != null) e.dept = v.dept;
+      if (Array.isArray(v.shiftIds)) e.shiftIds = v.shiftIds.filter(id => valid.has(id));
+      if (v.otOn != null) e.otOn = v.otOn;
+      if (v.show != null) e.show = v.show;
+    }
+    st.employees.forEach(e => e.shiftIds = e.shiftIds.filter(id => valid.has(id)));
+    st.employees.sort((a, b) => a.name.localeCompare(b.name));
+    Store.save();
+  }
+  function drawSetState() {
+    const el = $('#setState');
+    el.className = 'pill teal';
+    el.textContent = SET.at ? `☁ Shared · last saved ${SET.at.toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}${SET.by ? ' by ' + SET.by : ''}` : '☁ Shared · nothing saved yet';
+  }
+  /** Mark something as changed; it is sent to the database shortly after (one save for many clicks). */
+  function settingsChanged({ shifts = false, pins = [] } = {}) {
+    if (shifts) SET.shiftsDirty = true;
+    pins.forEach(p => SET.dirty.add(p));
+    $('#setState').className = 'pill'; $('#setState').textContent = 'Saving settings…';
+    clearTimeout(SET.timer);
+    SET.timer = setTimeout(pushSettings, 700);
+  }
+  /** Merge with the latest copy so two people editing different people never undo each other. */
+  async function pushSettings() {
+    try {
+      const remote = (await Store.fetchSettings())?.payload || {};
+      const p = { shifts: SET.shiftsDirty || !remote.shifts ? S().shifts : remote.shifts, people: { ...(remote.people || {}) } };
+      for (const pin of SET.dirty) {
+        const e = S().employees.find(x => x.pin === pin);
+        if (e) p.people[pin] = { name: e.name, jabatan: e.jabatan, dept: e.dept, shiftIds: e.shiftIds, otOn: e.otOn, show: e.show };
+      }
+      await Store.saveSettings(p, ME.email);
+      SET.payload = p; SET.at = new Date(); SET.by = ME.email; SET.shiftsDirty = false; SET.dirty.clear();
+      applySettings(p);
+      drawSetState();
+      toast('Settings saved for everyone');
+    } catch (e) { $('#setState').className = 'pill bad'; $('#setState').textContent = '✕ Not saved: ' + (e.message || e); }
+  }
+
+  /* ============================ CHECK MODEL ============================ */
   function refresh() {
     const st = S();
+    for (const n of Engine.deriveEmployees(st.scans))                // anyone in the file gets a person entry
+      if (!st.employees.some(e => e.pin === n.pin)) st.employees.push(n);
     const sessions = Engine.buildSessions(st.scans);
     Engine.defaultSchedules(st.employees, sessions, st.shifts);
-    M.emps = st.employees.filter(e => e.show !== false);
+    const filePins = new Set(st.scans.map(s => s.pin));
+    M.emps = st.employees.filter(e => e.show !== false && filePins.has(e.pin));
     M.dates = [];
     if (st.scans.length) {
       const a = Engine.ymd(st.scans[0].ts), z = Engine.ymd(st.scans[st.scans.length - 1].ts);
@@ -654,7 +866,7 @@ const Store = (() => {
     for (const c of M.cells.values()) {
       const r = DB.map.get(c.key);
       if (!r) continue;
-      Engine.applyDbRow(c, r);                                        // database wins
+      Engine.applyDbRow(c, r);
       delete st.overrides[c.key];
       M.fromDb++;
     }
@@ -665,8 +877,6 @@ const Store = (() => {
     drawCheckBar(); drawCheck();
     if (!$('#v-set').classList.contains('hidden')) drawSettings();
   }
-
-  /** Blue dot = a complete day (or a day type set by hand) that is NOT in the database yet. */
   function markUnsaved() {
     let n = 0;
     for (const c of M.cells.values()) {
@@ -681,7 +891,7 @@ const Store = (() => {
     b.classList.toggle('done', !n && !!M.dates.length);
   }
 
-  /* ---------------- database ---------------- */
+  /* ============================ DATABASE ============================ */
   async function loadDb() {
     DB.busy = true; DB.error = ''; drawDbBar(); drawCheckBar();
     try {
@@ -714,14 +924,14 @@ const Store = (() => {
       : DB.at ? `From the database · <b>${DB.rows.length}</b> saved days · loaded at ${timeNow(DB.at)}` : 'Not loaded yet — press ⟳ Refresh';
   }
 
-  /* ---------------- tabs + top ---------------- */
+  /* ============================ TABS + TOP ============================ */
   function wireTabs() {
     $$('.tab').forEach(t => t.onclick = () => {
       $$('.tab').forEach(x => x.classList.toggle('on', x === t));
       $$('.view').forEach(v => v.classList.add('hidden'));
       $('#v-' + t.dataset.v).classList.remove('hidden');
       if (t.dataset.v === 'dash') drawDash();
-      if (t.dataset.v === 'set') drawSettings();
+      if (t.dataset.v === 'set') { drawSettings(); loadSettings().then(() => { if (S().scans.length) refresh(); drawSettings(); }); }
     });
   }
   function wireTop() {
@@ -729,10 +939,10 @@ const Store = (() => {
     document.addEventListener('click', e => { if (!e.target.closest('.dropdown')) $('#expMenu').classList.add('hidden'); });
     $$('#expMenu button').forEach(b => b.onclick = () => { $('#expMenu').classList.add('hidden'); exportFile(b.dataset.x); });
     $('#btnSave').onclick = saveToDb;
-    $('#ckRefresh').onclick = loadDb;
+    $('#ckRefresh').onclick = async () => { await loadSettings(); loadDb(); };
   }
 
-  /* ---------------- add a file ---------------- */
+  /* ============================ ADD A FILE ============================ */
   function wireFile() {
     $('#file').onchange = e => { if (e.target.files[0]) readFile(e.target.files[0]); e.target.value = ''; };
     const dz = $('#drop');
@@ -756,7 +966,7 @@ const Store = (() => {
     const { a, name } = pending, st = S();
     st.scans = [...st.scans, ...a.fresh].sort((x, y) => x.ts - y.ts);
     for (const n of Engine.deriveEmployees(st.scans)) if (!st.employees.some(e => e.pin === n.pin)) st.employees.push(n);
-    st.employees.sort((x, y) => x.name.localeCompare(y.name));
+    applySettings(SET.payload);                                       // shared schedules / overtime for these people
     if (useFile) a.conflicts.forEach(k => delete st.overrides[k]);
     st.files.push({ name, at: new Date().toISOString(), rows: a.total, added: a.fresh.length, repeated: a.repeated });
     pending = null;
@@ -771,7 +981,7 @@ const Store = (() => {
     $('#askFile').onclick = () => { close(); addPending(true); };
   }
 
-  /* ---------------- shared ---------------- */
+  /* ============================ SHARED UI ============================ */
   function nameCell(p) {
     const sched = S().shifts.filter(s => (p.shiftIds || []).includes(s.id)).map(s => s.name).join(' + ');
     return `<td class="nm"><b title="${esc(p.name)}">${esc(p.name)}</b>
@@ -781,7 +991,6 @@ const Store = (() => {
     const wd = new Date(d + 'T00:00:00').toLocaleDateString('en', { weekday: short ? 'narrow' : 'short' });
     return `<th class="${isSun(d) ? 'sun' : ''}">${short ? +d.slice(8) : `${d.slice(8)}/${d.slice(5, 7)}`}<small>${wd}</small></th>`;
   }
-  /** "08:58–16:03", "13:40–??", "(13/09) 22:00–06:00", "22:46–07:17 (16/09)" */
   function line(s, date, html = true) {
     const q = html ? '<span class="q">??</span>' : '??';
     const tag = d => html ? `<span class="nx">(${fmtShort(d)})</span>` : `(${fmtShort(d)})`;
@@ -789,7 +998,6 @@ const Store = (() => {
     const nx = s.outTs && Engine.ymd(s.outTs) !== date ? ' ' + tag(Engine.ymd(s.outTs)) : '';
     return `${pv}${s.inTs ? Engine.hm(s.inTs) : q}–${s.outTs ? Engine.hm(s.outTs) : q}${nx}`;
   }
-  /** Click ANY cell. A day in the database always opens the database version. */
   function bind(root) {
     root.querySelectorAll('td[data-key]').forEach(td => {
       const k = td.dataset.key, inDb = () => DB.map.has(k), dash = root.id === 'dashGrid';
@@ -818,7 +1026,7 @@ const Store = (() => {
     showTip(ev, c.name, c.date, b);
   }
 
-  /* ---------------- 1 · CHECK ---------------- */
+  /* ============================ 1 · CHECK ============================ */
   function drawCheck() {
     if (!M.dates.length) return;
     $('#nMiss').textContent = [...M.cells.values()].filter(c => c.status === 'miss').length;
@@ -845,8 +1053,7 @@ const Store = (() => {
     return `<div class="cell ${cls}">${lab}<div class="t">${c.sessions.map(s => line(s, c.date)).join('<br>')}</div>${sub}</div>`;
   }
 
-  /* ---------------- 2 · DASHBOARD (database only) ---------------- */
-  /* summary columns on the right: 5 day counts + 2 hour totals */
+  /* ============================ 2 · DASHBOARD ============================ */
   const SUMS = [
     { k: 'WORK',   label: 'Work day',     unit: 'days', w: 60 },
     { k: 'OFF',    label: 'Day off',      unit: 'days', w: 60 },
@@ -857,24 +1064,30 @@ const Store = (() => {
     { k: 'ot',     label: 'Overtime',     unit: 'included', w: 84 },
   ];
   const SUMW = SUMS.reduce((t, s) => t + s.w, 0);
-  /** inline "position:sticky; right:Npx" for summary column i */
   const sumStyle = i => `right:${SUMS.slice(i + 1).reduce((t, s) => t + s.w, 0)}px;width:${SUMS[i].w}px;min-width:${SUMS[i].w}px`;
   const emptyTotals = () => ({ WORK: 0, OFF: 0, LEAVE: 0, SICK: 0, ABSENT: 0, work: 0, ot: 0 });
-  /** add one database row to a totals object */
-  function addRow(t, r) {
-    t[r.day_type in t ? r.day_type : 'WORK']++;          // every saved day counts once, in its own type
-    t.work += r.working_minutes || 0;
-    t.ot += r.overtime_minutes || 0;
+  /** Totals for one person's rows. Work day uses the "each date only once" rule. */
+  function personTotals(rows) {
+    const t = emptyTotals(), wd = Engine.countWorkDays(rows);
+    for (const r of rows) {
+      const type = r.day_type in t ? r.day_type : 'WORK';
+      if (type !== 'WORK') t[type]++;
+      t.work += r.working_minutes || 0;
+      t.ot += r.overtime_minutes || 0;
+    }
+    t.WORK = wd.total;
+    return { t, credit: wd.perDate };
   }
-  function sumCells(t, rowClass = '') {
+  const addTotals = (A, t) => { for (const k in A) A[k] += t[k]; };
+  function sumCells(t) {
     return SUMS.map((s, i) => {
       const v = t[s.k], hrsCol = s.unit !== 'days';
-      return `<td class="tot ${hrsCol ? '' : 'cnt'} ${s.k === 'ot' ? 'o' : ''} ${i === 0 ? 'first' : ''} ${v ? '' : 'zero'} ${rowClass}" style="${sumStyle(i)}">${hrsCol ? hrs(v) : v}</td>`;
+      return `<td class="tot ${hrsCol ? '' : 'cnt'} ${s.k === 'ot' ? 'o' : ''} ${i === 0 ? 'first' : ''} ${v ? '' : 'zero'}" style="${sumStyle(i)}">${hrsCol ? hrs(v) : v}</td>`;
     }).join('');
   }
 
   function wireDash() {
-    $('#dbRefresh').onclick = loadDb;
+    $('#dbRefresh').onclick = async () => { await loadSettings(); loadDb(); };
     ['fFrom', 'fTo'].forEach(id => $('#' + id).onchange = () => {
       F.from = $('#fFrom').value; F.to = $('#fTo').value;
       if (F.from && F.to && F.from > F.to) [F.from, F.to] = [F.to, F.from];
@@ -893,8 +1106,9 @@ const Store = (() => {
   const dbPerson = pin => {
     const e = S().employees.find(x => x.pin === pin);
     const p = DB.people.find(x => x.pin === pin) || { pin, name: e?.name || pin, dept: e?.dept || '' };
-    return { ...p, shiftIds: e ? e.shiftIds : [], otOn: e ? e.otOn : undefined, local: !!e };
+    return { ...p, dept: e?.dept || p.dept, shiftIds: e ? e.shiftIds : [], otOn: e ? e.otOn : undefined, local: !!e, show: e ? e.show !== false : true };
   };
+  let CREDIT = {};                                       // "pin|date" -> work days this saved day counts for
   function drawDash() {
     drawDbBar();
     if (!DB.rows.length) {
@@ -907,9 +1121,9 @@ const Store = (() => {
     if (F.to && !DB.dates.includes(F.to)) F.to = '';
     const from = F.from || DB.dates[0], to = F.to || DB.dates.at(-1);
     const dates = DB.dates.filter(d => d >= from && d <= to);
-    const teams = [...new Set(DB.people.map(p => p.dept || 'No team'))].sort();
-    const people = DB.people.map(p => dbPerson(p.pin))
-      .filter(p => (!F.teams.size || F.teams.has(p.dept || 'No team')) && (!F.find || p.name.toLowerCase().includes(F.find)));
+    const all = DB.people.map(p => dbPerson(p.pin)).filter(p => p.show);
+    const teams = [...new Set(all.map(p => p.dept || 'No team'))].sort();
+    const people = all.filter(p => (!F.teams.size || F.teams.has(p.dept || 'No team')) && (!F.find || p.name.toLowerCase().includes(F.find)));
     const P = periods(), cur = P.find(p => p.from === from && p.to === to);
     $('#fPeriod').innerHTML = P.map(p => `<button class="fc ${cur === p ? 'on' : ''}" data-p="${p.id}">${p.label}</button>`).join('')
       + `<button class="fc ${cur ? '' : 'on'}" disabled>Custom</button>`;
@@ -925,51 +1139,56 @@ const Store = (() => {
       if (F.teams.size === teams.length) F.teams.clear();
       drawDash();
     });
-    $('#showing').innerHTML = `Showing <b>${cur ? cur.label : 'custom dates'}</b> (${fmt(from)} → ${fmt(to)}) · <b>${people.length}</b> of ${DB.people.length} people`
+    $('#showing').innerHTML = `Showing <b>${cur ? cur.label : 'custom dates'}</b> (${fmt(from)} → ${fmt(to)}) · <b>${people.length}</b> of ${all.length} people`
       + (F.from || F.teams.size || F.find ? '<a id="reset">Reset filters</a>' : '');
     $('#reset')?.addEventListener('click', () => { F = { from: '', to: '', teams: new Set(), find: '' }; $('#fFind').value = ''; drawDash(); });
 
     const ALL = emptyTotals();
+    CREDIT = {};
     let h = `<table class="grid" style="min-width:${190 + dates.length * 30 + SUMW}px"><colgroup><col style="width:190px">${dates.map(() => '<col>').join('')}
       ${SUMS.map(s => `<col style="width:${s.w}px">`).join('')}</colgroup>
       <thead><tr><th class="nm">Name</th>${dates.map(d => dateTh(d, true)).join('')}
       ${SUMS.map((s, i) => `<th class="tot ${s.k === 'ot' ? 'o' : ''} ${i === 0 ? 'first' : ''}" style="${sumStyle(i)}">${s.label}<small>${s.unit}</small></th>`).join('')}</tr></thead><tbody>`;
     for (const p of people) {
-      const T = emptyTotals();
-      for (const d of dates) { const r = DB.map.get(`${p.pin}|${d}`); if (r) { addRow(T, r); addRow(ALL, r); } }
-      h += `<tr>${nameCell(p)}${dates.map(d => `<td class="pick-td ${isSun(d) ? 'sun' : ''}" data-key="${p.pin}|${d}">${dbBox(DB.map.get(`${p.pin}|${d}`))}</td>`).join('')}
-        ${sumCells(T)}</tr>`;
+      const rows = dates.map(d => DB.map.get(`${p.pin}|${d}`)).filter(Boolean);
+      const { t, credit } = personTotals(rows);
+      for (const d in credit) CREDIT[`${p.pin}|${d}`] = credit[d];
+      addTotals(ALL, t);
+      h += `<tr>${nameCell(p)}${dates.map(d => `<td class="pick-td ${isSun(d) ? 'sun' : ''}" data-key="${p.pin}|${d}">${dbBox(DB.map.get(`${p.pin}|${d}`), CREDIT[`${p.pin}|${d}`])}</td>`).join('')}
+        ${sumCells(t)}</tr>`;
     }
     h += `</tbody><tfoot><tr><td class="nm"><b>Total</b></td><td colspan="${dates.length}"></td>${sumCells(ALL)}</tr></tfoot></table>`;
     $('#dashGrid').innerHTML = people.length ? h : '<p class="hint" style="padding:20px">Nobody matches these filters.</p>';
     bind($('#dashGrid'));
   }
-  function dbBox(r) {
+  function dbBox(r, credit) {
     if (!r) return `<i class="box none">＋</i>`;
     if (r.day_type && r.day_type !== 'WORK' && !r.working_minutes) {
       const [ch, cls] = { OFF: ['O', 'off'], LEAVE: ['AL', 'off'], SICK: ['S', 'sick'], ABSENT: ['A', 'abs'] }[r.day_type] || ['?', 'off'];
       return `<i class="box ${cls}">${ch}</i>`;
     }
-    if (!r.working_minutes) return `<i class="box ok">W</i>`;          // work day with no in/out time
-    return `<i class="box ${r.overtime_minutes ? 'ot' : r.edited ? 'edit' : 'ok'}">✓</i>`;
+    if (!r.working_minutes) return `<i class="box ok">W</i>`;
+    const sup = credit > 1 ? `<sup>${credit}</sup>` : '';
+    return `<i class="box ${r.overtime_minutes ? 'ot' : r.edited ? 'edit' : 'ok'}">✓${sup}</i>`;
   }
   function dbTip(ev, key) {
     const r = DB.map.get(key), [pin, date] = key.split('|');
-    const io = Engine.parseInOut(r.in_out);
-    const sess = Engine.draftToSessions(date, io);
+    const sess = Engine.draftToSessions(date, Engine.parseInOut(r.in_out));
+    const cr = CREDIT[key];
+    const crTxt = r.day_type === 'WORK' && r.working_minutes > 0
+      ? (cr === 0 ? 'Already counted (work from the day before)' : cr > 1 ? `Counts as ${cr} work days` : 'Counts as 1 work day') : '';
     const b = `<div class="l c"><span>☁ From the database</span></div>`
       + `<div class="l"><span>Day</span><b>${Engine.DAY_TYPES[r.day_type] || r.day_type}</b></div>`
       + (sess.length ? sess.map(s => `<div class="l"><span>In – out</span><b>${line(s, date, false)}</b></div>`).join('') : `<div class="l"><span>No in / out time</span></div>`)
       + `<div class="l"><span>Working (total)</span><b>${hrs(r.working_minutes)}</b></div>`
       + (r.overtime_minutes ? `<div class="l o"><span>of which overtime</span><b>${hrs(r.overtime_minutes)}</b></div>` : '')
+      + (crTxt ? `<div class="l"><span>Work days</span><span>${crTxt}</span></div>` : '')
       + (r.note ? `<div class="l"><span>Note</span><span>${esc(r.note)}</span></div>` : '')
       + `<div class="l"><span>Saved</span><span>${new Date(r.saved_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</span></div>`;
     showTip(ev, dbPerson(pin).name, date, b);
   }
 
-  /* ---------------- EDIT PANEL ----------------
-   * day in the database : "Save to database" writes it immediately
-   * day only in the file: "Save" keeps the fix here (blue dot) until "Save to database" */
+  /* ============================ EDIT PANEL ============================ */
   const regular = () => S().shifts.find(s => s.id === 'REG') || S().shifts[0];
   function wirePanel() {
     $('#pType').innerHTML = Object.entries(Engine.DAY_TYPES).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
@@ -1004,7 +1223,7 @@ const Store = (() => {
     const io = v => v === 1 ? 'in' : v === 2 ? 'out' : v == null ? '' : 'code ' + v;
     return '<b>What the machine recorded on this date</b><br>' + (taps.length ? taps.map(s => `<span>${Engine.hm(s.ts)} ${io(s.io)}</span>`).join('') : 'nothing');
   };
-  function openPanel(key) {                                           // a day NOT in the database
+  function openPanel(key) {
     const c = M.cells.get(key); if (!c) return;
     const e = S().employees.find(x => x.pin === c.pin);
     showPanel({ key, pin: c.pin, date: c.date, name: c.name, dept: c.dept, otOn: e.otOn,
@@ -1013,7 +1232,7 @@ const Store = (() => {
       '📄 From the file — not in the database yet. <b>Save</b> keeps it here, then use <b>Save to database</b>.',
       rawTaps(c.pin, c.date));
   }
-  function openDbPanel(key) {                                         // a day IN the database (or a "+" on the Dashboard)
+  function openDbPanel(key) {
     const [pin, date] = key.split('|'), r = DB.map.get(key), p = dbPerson(pin);
     const byName = r?.schedule ? S().shifts.filter(s => r.schedule.split(' + ').includes(s.name)) : [];
     let shifts = S().shifts.filter(s => p.shiftIds.includes(s.id));
@@ -1026,10 +1245,7 @@ const Store = (() => {
       rawTaps(pin, date));
   }
   function closePanel() { $('#panel').classList.add('hidden'); $('#shade').classList.add('hidden'); P0 = null; }
-
-  /** A Work day with no in/out is allowed (e.g. present without tapping) — but ask first. */
   const okNoTime = (type, rows) => rows.length || type !== 'WORK' || confirm('Save this as a Work day with no in / out time?');
-
   function saveLocalPanel() {
     const type = $('#pType').value, rows = draft.filter(r => r.in || r.out);
     if (!okNoTime(type, rows)) return;
@@ -1060,7 +1276,6 @@ const Store = (() => {
       `</div><span class="hint">None ticked = matched by the in/out times.</span>`;
     $$('#pSched input').forEach(i => i.onchange = () => { chosen = $$('#pSched input:checked').map(x => x.value); drawSum(); });
   }
-  /** One card per in/out: In · Out · "In is on the previous day" · "Out is on the next day". */
   function drawRows() {
     const date = P0.date, reg = regular(), ses = Engine.draftToSessions(date, draft);
     const prevD = Engine.addDays(date, -1), nextD = Engine.addDays(date, 1);
@@ -1097,6 +1312,8 @@ const Store = (() => {
   function drawSum() {
     const date = P0.date, type = $('#pType').value;
     const r = Engine.splitDay(type, Engine.draftToSessions(date, draft), date, P0.shifts, P0.otOn, S().shifts.filter(s => chosen.includes(s.id)));
+    const complete = draft.filter(x => x.in && x.out);
+    const extra = type === 'WORK' && complete.slice(1).some(x => x.next || x.prev);
     let note;
     if (!draft.some(x => x.in || x.out)) note = `No in / out time — this day counts as 1 <b>${Engine.DAY_TYPES[type]}</b> day, 0 hours.`;
     else if (r.why === 'OT_OFF') note = `${esc(P0.name)} is not allowed overtime (Settings → People), so overtime is 0.`;
@@ -1107,23 +1324,32 @@ const Store = (() => {
       const end = Engine.hm(r.line) + (Engine.ymd(r.line) !== date ? ` (${fmtShort(Engine.ymd(r.line))})` : '');
       note = r.otMin ? `Overtime counted after ${end}, the end of ${r.names.join(' + ')}.` : `Nothing after ${end} (end of ${r.names.join(' + ')}), so no overtime.`;
     }
+    if (extra) note += '<br>📅 The second in/out runs into another day, so this counts as <b>2 work days</b> on the Dashboard (unless that other day is already counted).';
     $('#pSum').innerHTML = `<div class="l"><span>Working hours (total)</span><b>${hrs(r.workMin)}</b></div>
       <div class="l o"><span>of which overtime</span><b>${P0.otOn ? hrs(r.otMin) : 'not allowed'}</b></div><div class="n">${note}</div>`;
   }
 
-  /* ---------------- SETTINGS ---------------- */
+  /* ============================ SETTINGS ============================ */
   function wireSettings() {
-    $('#addShift').onclick = () => { S().shifts.push({ id: 'X' + Date.now(), name: 'New schedule', start: '08:00', end: '17:00' }); refresh(); drawSettings(); };
+    $('#addShift').onclick = () => {
+      S().shifts.push({ id: 'X' + Date.now(), name: 'New schedule', start: '08:00', end: '17:00' });
+      settingsChanged({ shifts: true }); refresh(); drawSettings();
+    };
     $('#dbTest').onclick = checkDb;
+    $('#addUser').onclick = async () => {
+      const email = $('#newUser').value.trim().toLowerCase();
+      if (!/^\S+@\S+\.\S+$/.test(email)) return toast('Type a valid email');
+      try { await Store.upsertUser({ email, role: $('#newRole').value, active: true }); $('#newUser').value = ''; drawUsers(); toast('User added'); }
+      catch (e) { toast('⚠ ' + (e.message || e)); }
+    };
     $('#restore').onchange = async e => {
       const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-      try { Store.restore(await f.text()); refresh(); toast('Backup restored'); } catch (err) { toast('⚠ ' + err.message); }
+      try { Store.restore(await f.text()); applySettings(SET.payload); refresh(); toast('Backup restored'); } catch (err) { toast('⚠ ' + err.message); }
     };
-    $('#clearAll').onclick = () => { if (confirm('Clear the file and your unsaved fixes from this browser? (The database is not touched.)')) { Store.reset(); location.reload(); } };
+    $('#clearAll').onclick = () => { if (confirm('Clear the file and your unsaved fixes from this browser? (The database and shared settings are not touched.)')) { Store.reset(); location.reload(); } };
   }
   async function checkDb() {
     const pill = $('#dbState');
-    $('#dbUrl').textContent = Store.url;
     pill.className = 'pill'; pill.textContent = 'checking…';
     const err = await Store.test();
     pill.className = 'pill ' + (err ? 'bad' : 'good');
@@ -1136,10 +1362,14 @@ const Store = (() => {
         <td><input type="time" value="${s.start}" data-s="${i}" data-f="start"></td><td><input type="time" value="${s.end}" data-s="${i}" data-f="end"></td>
         <td>${hrs(Engine.shiftLen(s))}${Engine.toMin(s.end) <= Engine.toMin(s.start) ? ' <small>(ends next day)</small>' : ''}</td>
         <td>${s.id === 'REG' ? '<small>used by the In / Out buttons</small>' : `<button class="btn" data-dels="${i}">Remove</button>`}</td></tr>`).join('') + '</table>';
-    $$('#shiftTable [data-s]').forEach(i => i.onchange = () => { st.shifts[+i.dataset.s][i.dataset.f] = i.value; refresh(); drawSettings(); });
+    $$('#shiftTable [data-s]').forEach(i => i.onchange = () => {
+      st.shifts[+i.dataset.s][i.dataset.f] = i.value; settingsChanged({ shifts: true }); refresh(); drawSettings();
+    });
     $$('#shiftTable [data-dels]').forEach(b => b.onclick = () => {
       const id = st.shifts[+b.dataset.dels].id; st.shifts.splice(+b.dataset.dels, 1);
-      st.employees.forEach(e => e.shiftIds = e.shiftIds.filter(x => x !== id)); refresh(); drawSettings();
+      const hit = st.employees.filter(e => e.shiftIds.includes(id)).map(e => e.pin);
+      st.employees.forEach(e => e.shiftIds = e.shiftIds.filter(x => x !== id));
+      settingsChanged({ shifts: true, pins: hit }); refresh(); drawSettings();
     });
     $('#peopleTable').innerHTML = st.employees.length ? `<table class="data"><tr><th>Name</th><th>Job title</th><th>Team</th><th>Schedules</th><th>Overtime allowed</th><th>Show</th></tr>` +
       st.employees.map((e, i) => `<tr><td>${esc(e.name)}</td>
@@ -1147,23 +1377,40 @@ const Store = (() => {
         <td><div class="sched">${st.shifts.map(s => `<label><input type="checkbox" data-sc="${i}" value="${s.id}" ${e.shiftIds.includes(s.id) ? 'checked' : ''}>${esc(s.name)}</label>`).join('')}</div></td>
         <td style="text-align:center"><input type="checkbox" data-e="${i}" data-f="otOn" ${e.otOn ? 'checked' : ''}></td>
         <td style="text-align:center"><input type="checkbox" data-e="${i}" data-f="show" ${e.show !== false ? 'checked' : ''}></td></tr>`).join('') + '</table>'
-      : '<p class="hint">Add a file first.</p>';
-    $$('#peopleTable [data-e]').forEach(i => i.onchange = () => { const e = st.employees[+i.dataset.e]; e[i.dataset.f] = i.type === 'checkbox' ? i.checked : i.value; refresh(); });
+      : '<p class="hint">No people yet — add a file, or wait for someone to save settings.</p>';
+    $$('#peopleTable [data-e]').forEach(i => i.onchange = () => {
+      const e = st.employees[+i.dataset.e]; e[i.dataset.f] = i.type === 'checkbox' ? i.checked : i.value;
+      settingsChanged({ pins: [e.pin] }); refresh();
+    });
     $$('#peopleTable [data-sc]').forEach(i => i.onchange = () => {
       const e = st.employees[+i.dataset.sc];
       e.shiftIds = $$(`#peopleTable [data-sc="${i.dataset.sc}"]:checked`).map(x => x.value);
       if (!e.shiftIds.length) { i.checked = true; e.shiftIds = [i.value]; toast('Everyone needs at least one schedule'); }
-      refresh();
+      settingsChanged({ pins: [e.pin] }); refresh();
     });
     $('#fileTable').innerHTML = st.files.length ? `<table class="data"><tr><th>File</th><th>Added on</th><th>Rows</th><th>New taps</th><th>Already here</th></tr>` +
       st.files.map(f => `<tr><td>${esc(f.name)}</td><td>${new Date(f.at).toLocaleString()}</td><td>${f.rows}</td><td>${f.added}</td><td>${f.repeated}</td></tr>`).join('') + '</table>'
-      : '<p class="hint">No file yet.</p>';
+      : '<p class="hint">No file in this browser.</p>';
     checkDb();
+    if (ME.role === 'ADMIN') drawUsers();
+  }
+  async function drawUsers() {
+    try {
+      const list = await Store.listUsers();
+      $('#userTable').innerHTML = `<table class="data"><tr><th>Email</th><th>Role</th><th>Active</th></tr>` +
+        list.map((u, i) => `<tr><td>${esc(u.email)}${u.email === ME.email ? ' <small>(you)</small>' : ''}</td>
+          <td><select data-u="${i}" data-f="role" ${u.email === ME.email ? 'disabled' : ''}><option ${u.role === 'USER' ? 'selected' : ''}>USER</option><option ${u.role === 'ADMIN' ? 'selected' : ''}>ADMIN</option></select></td>
+          <td><input type="checkbox" data-u="${i}" data-f="active" ${u.active ? 'checked' : ''} ${u.email === ME.email ? 'disabled' : ''}></td></tr>`).join('') + '</table>';
+      $$('#userTable [data-u]').forEach(el => el.onchange = async () => {
+        const u = { ...list[+el.dataset.u] };
+        u[el.dataset.f] = el.type === 'checkbox' ? el.checked : el.value;
+        try { await Store.upsertUser({ email: u.email, role: u.role, active: u.active }); toast('User updated'); drawUsers(); }
+        catch (e) { toast('⚠ ' + (e.message || e)); }
+      });
+    } catch (e) { $('#userTable').innerHTML = `<p class="hint">Could not load users: ${esc(e.message || e)}</p>`; }
   }
 
-  /* ---------------- SAVE + EXPORT ---------------- */
-  /** Sends only days NOT in the database. Reloads the database first, so a day
-   *  another computer saved a moment ago is never overwritten with raw file data. */
+  /* ============================ SAVE + EXPORT ============================ */
   async function saveToDb() {
     if (!M.dates.length) return toast('Add a file first');
     const b = $('#btnSave'); b.disabled = true; b.textContent = 'Checking the database…';
@@ -1190,19 +1437,24 @@ const Store = (() => {
     if (!DB.at) await loadDb();
     const from = F.from || DB.dates[0], to = F.to || DB.dates.at(-1);
     const list = DB.rows.filter(r => r.work_date >= from && r.work_date <= to).filter(r => {
-      const p = dbPerson(r.pin); return (!F.teams.size || F.teams.has(p.dept || 'No team')) && (!F.find || p.name.toLowerCase().includes(F.find));
+      const p = dbPerson(r.pin); return p.show && (!F.teams.size || F.teams.has(p.dept || 'No team')) && (!F.find || p.name.toLowerCase().includes(F.find));
     });
     if (!list.length) return toast('Nothing saved in the database for this filter');
     let rows;
-    if (kind === 'daily') rows = list.map(r => ({ Date: r.work_date, Name: r.name, Team: r.dept, Day: Engine.DAY_TYPES[r.day_type] || r.day_type,
-      Schedule: r.schedule, 'In – out': r.in_out, 'Working hours (total)': dec(r.working_minutes), 'of which overtime': dec(r.overtime_minutes),
-      'Fixed by hand': r.edited ? 'YES' : '', Note: r.note, 'Saved at': new Date(r.saved_at).toLocaleString() }));
-    else {
+    if (kind === 'daily') {
+      const byPin = new Map(); list.forEach(r => (byPin.get(r.pin) || byPin.set(r.pin, []).get(r.pin)).push(r));
+      const cr = {}; for (const [pin, rs] of byPin) { const w = Engine.countWorkDays(rs).perDate; for (const d in w) cr[`${pin}|${d}`] = w[d]; }
+      rows = list.map(r => ({ Date: r.work_date, Name: r.name, Team: dbPerson(r.pin).dept, Day: Engine.DAY_TYPES[r.day_type] || r.day_type,
+        Schedule: r.schedule, 'In – out': r.in_out, 'Work days counted': cr[`${r.pin}|${r.work_date}`] || 0,
+        'Working hours (total)': dec(r.working_minutes), 'of which overtime': dec(r.overtime_minutes),
+        'Fixed by hand': r.edited ? 'YES' : '', Note: r.note, 'Saved at': new Date(r.saved_at).toLocaleString() }));
+    } else {
       const per = new Map();
-      for (const r of list) { if (!per.has(r.pin)) per.set(r.pin, { name: r.name, dept: r.dept, t: emptyTotals() }); addRow(per.get(r.pin).t, r); }
-      rows = [...per.values()].sort((x, y) => x.name.localeCompare(y.name)).map(({ name, dept, t }) => ({
-        Name: name, Team: dept, 'Work day': t.WORK, 'Day off': t.OFF, 'Annual leave': t.LEAVE, Sick: t.SICK, Absent: t.ABSENT,
-        'Working hours (total)': dec(t.work), 'of which overtime': dec(t.ot) }));
+      for (const r of list) { if (!per.has(r.pin)) per.set(r.pin, []); per.get(r.pin).push(r); }
+      rows = [...per.entries()].map(([pin, rs]) => ({ p: dbPerson(pin), t: personTotals(rs).t }))
+        .sort((x, y) => x.p.name.localeCompare(y.p.name)).map(({ p, t }) => ({
+          Name: p.name, Team: p.dept, 'Work day': t.WORK, 'Day off': t.OFF, 'Annual leave': t.LEAVE, Sick: t.SICK, Absent: t.ABSENT,
+          'Working hours (total)': dec(t.work), 'of which overtime': dec(t.ot) }));
     }
     const wb = XLSX.utils.book_new(), ws = XLSX.utils.json_to_sheet(rows);
     ws['!cols'] = Object.keys(rows[0]).map(k => ({ wch: Math.max(12, k.length + 2) }));

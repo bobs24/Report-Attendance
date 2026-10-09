@@ -1,4 +1,3 @@
-# never publish real staff data to a public repo
 *.xls
 *.xlsx
 *.json
