@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Attendance v1.3</title>
+<title>Attendance v1.4</title>
 <style>
 /* teal = from database · green complete · blue fixed · amber missing · orange overtime · grey off */
 :root{
@@ -167,7 +167,7 @@ table.data{width:100%;border-collapse:collapse;font-size:12.5px}
 <!-- ============ LOGIN (nothing else is shown until you are signed in) ============ -->
 <div id="login" class="login">
   <div class="lbox">
-    <h2>🕐 Attendance <span class="ver">v1.3</span></h2>
+    <h2>🕐 Attendance <span class="ver">v1.4</span></h2>
     <p>Sign in with your Google account. Only approved emails can enter.</p>
     <button id="lGoogle" class="btn gbtn" type="button">
       <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
@@ -179,7 +179,7 @@ table.data{width:100%;border-collapse:collapse;font-size:12.5px}
 
 <div id="app" class="hidden">
 <header class="top">
-  <div class="brand">🕐 <b>Attendance</b> <span class="ver">v1.3</span> <small id="period">no file yet</small></div>
+  <div class="brand">🕐 <b>Attendance</b> <span class="ver">v1.4</span> <small id="period">no file yet</small></div>
   <nav class="tabs">
     <button class="tab on" data-v="check">1 · Check</button>
     <button class="tab" data-v="dash">2 · Dashboard</button>
@@ -233,8 +233,9 @@ table.data{width:100%;border-collapse:collapse;font-size:12.5px}
   <div class="dbbar">
     <button id="dbRefresh" class="btn primary big">⟳ Refresh</button>
     <span id="dbInfo">Not loaded yet</span>
+    <button id="dbFix" class="btn hidden"></button>
     <div class="grow"></div>
-    <span class="hint">Shows only what is in the database. Editing here saves straight to the database.</span>
+    <span class="hint">Overtime is recalculated from the in/out times and the current Settings.</span>
   </div>
   <div class="filters">
     <div class="frow"><span class="flab">Period</span><div id="fPeriod" class="chips"></div></div>
@@ -594,10 +595,6 @@ const Engine = (() => {
    * A SECOND (or later) in/out on that day that ends on the next day claims the
    * next date too (starts on the day before -> claims the day before).
    * A date that is already claimed is never counted again.
-   *   14th: 09:00-17:00 + 17:00-03:00(+1)  -> claims 14 and 15 = 2 days
-   *   15th: 17:00-22:00                    -> 15 already claimed = 0 more
-   *   A single night shift 22:00-06:00(+1) -> 1 day only
-   * rows = one person's saved rows. Returns { total, perDate: {date: credit} }.
    */
   function countWorkDays(rows) {
     const claimed = new Set(), perDate = {};
@@ -635,8 +632,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const T_RECORDS = 'attendance_records', T_SETTINGS = 'app_settings', T_USERS = 'app_users';
 
 const Store = (() => {
-  const KEY = 'attendance_v1_3';
-  const OLD_KEYS = ['attendance_v1_2', 'attendance_v9', 'attendance_v8', 'attendance_v7', 'attendance_v6'];
+  const KEY = 'attendance_v1_4';
+  const OLD_KEYS = ['attendance_v1_3', 'attendance_v1_2', 'attendance_v9', 'attendance_v8', 'attendance_v7', 'attendance_v6'];
   const blank = () => ({ files: [], scans: [], employees: [], shifts: Engine.DEFAULT_SHIFTS.map(s => ({ ...s })), overrides: {} });
   let state = blank(), client = null;
 
@@ -738,7 +735,7 @@ const Store = (() => {
   function wireLogin() {
     $('#lGoogle').onclick = async () => {
       $('#lGoogle').disabled = true; lmsg('Opening Google…');
-      try { await Store.signInGoogle(); }                         // the page leaves to Google here
+      try { await Store.signInGoogle(); }
       catch (err) { lmsg(String(err.message || err), 'bad'); $('#lGoogle').disabled = false; }
     };
     $('#btnOut').onclick = async () => { await Store.signOut(); location.replace(location.pathname); };
@@ -769,7 +766,6 @@ const Store = (() => {
     Store.load();
     wireLogin();
     if (!Store.connect()) { showLogin(); return lmsg('The Supabase library did not load (no internet, or cdn.jsdelivr.net is blocked).', 'bad'); }
-    // coming back from Google: the page URL carries the result — show any error, then tidy the URL
     const back = new URLSearchParams(location.hash.slice(1) + '&' + location.search.slice(1));
     if (back.get('error_description')) lmsg(back.get('error_description').replace(/\+/g, ' '), 'bad');
     Store.onAuth((ev) => { if (ev === 'SIGNED_IN' && !started) afterLogin().catch(e => lmsg(String(e.message || e), 'bad')); });
@@ -787,7 +783,6 @@ const Store = (() => {
   }
 
   /* ============================ SHARED SETTINGS ============================ */
-  /** Read the shared settings and apply them on top of this browser. */
   async function loadSettings() {
     try {
       const row = await Store.fetchSettings();
@@ -796,6 +791,7 @@ const Store = (() => {
       SET.by = row?.updated_by || '';
       applySettings(SET.payload);
       drawSetState();
+      if (DB.rows.length) { recalcRows(); drawDash(); }
     } catch (e) { $('#setState').className = 'pill bad'; $('#setState').textContent = '✕ Settings: ' + (e.message || e); }
   }
   function applySettings(p) {
@@ -822,15 +818,14 @@ const Store = (() => {
     el.className = 'pill teal';
     el.textContent = SET.at ? `☁ Shared · last saved ${SET.at.toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}${SET.by ? ' by ' + SET.by : ''}` : '☁ Shared · nothing saved yet';
   }
-  /** Mark something as changed; it is sent to the database shortly after (one save for many clicks). */
   function settingsChanged({ shifts = false, pins = [] } = {}) {
     if (shifts) SET.shiftsDirty = true;
     pins.forEach(p => SET.dirty.add(p));
+    if (DB.rows.length) { recalcRows(); if (S().scans.length) refresh(); drawDash(); }      // show the effect at once
     $('#setState').className = 'pill'; $('#setState').textContent = 'Saving settings…';
     clearTimeout(SET.timer);
     SET.timer = setTimeout(pushSettings, 700);
   }
-  /** Merge with the latest copy so two people editing different people never undo each other. */
   async function pushSettings() {
     try {
       const remote = (await Store.fetchSettings())?.payload || {};
@@ -850,7 +845,7 @@ const Store = (() => {
   /* ============================ CHECK MODEL ============================ */
   function refresh() {
     const st = S();
-    for (const n of Engine.deriveEmployees(st.scans))                // anyone in the file gets a person entry
+    for (const n of Engine.deriveEmployees(st.scans))
       if (!st.employees.some(e => e.pin === n.pin)) st.employees.push(n);
     const sessions = Engine.buildSessions(st.scans);
     Engine.defaultSchedules(st.employees, sessions, st.shifts);
@@ -896,7 +891,9 @@ const Store = (() => {
     DB.busy = true; DB.error = ''; drawDbBar(); drawCheckBar();
     try {
       const rows = await Store.fetchRecords();
+      rows.forEach(r => { r._w = r.working_minutes; r._o = r.overtime_minutes; r._s = r.schedule; r._a = r.overtime_allowed; });  // what is stored
       DB.rows = rows;
+      recalcRows();
       DB.map = new Map(rows.map(r => [`${r.pin}|${r.work_date}`, r]));
       const people = new Map();
       for (const r of rows) people.set(r.pin, { pin: r.pin, name: r.name, dept: r.dept || '' });
@@ -909,6 +906,50 @@ const Store = (() => {
     if (S().scans.length) refresh();
     drawCheckBar(); drawDash();
   }
+  /**
+   * Overtime is NEVER taken from the database as-is: every saved day is
+   * recalculated from its in/out times + the person's CURRENT schedules and
+   * "Overtime allowed". Days whose stored numbers differ are marked _stale and
+   * can be written back with the "Save corrected overtime" button.
+   */
+  function recalcRows() {
+    let n = 0;
+    for (const r of DB.rows) {
+      const sessions = Engine.draftToSessions(r.work_date, Engine.parseInOut(r.in_out));
+      r._stale = false;
+      if (!sessions.some(s => s.durMin != null)) continue;            // no complete in/out: nothing to count
+      const e = S().employees.find(x => x.pin === r.pin);
+      const byName = r._s ? S().shifts.filter(s => r._s.split(' + ').includes(s.name)) : [];
+      let shifts = e ? S().shifts.filter(s => e.shiftIds.includes(s.id)) : [];
+      if (!shifts.length) shifts = byName.length ? byName : [S().shifts.find(s => s.id === 'REG') || S().shifts[0]];
+      // a person with 2+ schedules may have picked which one was worked that day: keep that pick
+      const chosen = shifts.length > 1 && byName.length && byName.every(s => shifts.includes(s)) ? byName : [];
+      const otOn = e ? e.otOn !== false : (r._a ?? true);
+      const x = Engine.splitDay(r.day_type || 'WORK', sessions, r.work_date, shifts, otOn, chosen);
+      r.working_minutes = x.workMin;
+      r.overtime_minutes = x.otMin;
+      r.schedule = x.names.join(' + ') || r._s;
+      r.overtime_allowed = otOn;
+      r._stale = r._w !== x.workMin || r._o !== x.otMin || (r._s || null) !== (r.schedule || null) || r._a !== otOn;
+      if (r._stale) n++;
+    }
+    DB.stale = n;
+    return n;
+  }
+  /** Write the recalculated numbers back, so exports / other tools see the same. */
+  async function saveCorrected() {
+    const list = DB.rows.filter(r => r._stale);
+    if (!list.length) return;
+    if (!confirm(`Update the stored hours / overtime of ${list.length} saved day(s) to the recalculated values?`)) return;
+    const b = $('#dbFix'); b.disabled = true; b.textContent = 'Saving…';
+    try {
+      await Store.pushRecords(list.map(r => Object.fromEntries(Object.entries(r).filter(([k]) => !k.startsWith('_') && k !== 'saved_at'))));
+      await loadDb();
+      toast(`${list.length} day(s) corrected in the database`);
+    } catch (e) { toast('⚠ Could not save: ' + (e.message || e)); }
+    b.disabled = false;
+  }
+
   const timeNow = d => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   function drawCheckBar() {
     $('#ckRefresh').disabled = DB.busy;
@@ -922,6 +963,9 @@ const Store = (() => {
     $('#dbRefresh').textContent = DB.busy ? 'Loading…' : '⟳ Refresh';
     $('#dbInfo').innerHTML = DB.error ? `<span class="pill bad">✕ ${esc(DB.error)}</span>`
       : DB.at ? `From the database · <b>${DB.rows.length}</b> saved days · loaded at ${timeNow(DB.at)}` : 'Not loaded yet — press ⟳ Refresh';
+    $('#dbFix').classList.toggle('hidden', !DB.stale || DB.busy);
+    $('#dbFix').textContent = `Save corrected overtime (${DB.stale || 0})`;
+    $('#dbFix').title = 'These saved days had hours / overtime from old settings. The Dashboard already shows the corrected values; this writes them to the database.';
   }
 
   /* ============================ TABS + TOP ============================ */
@@ -966,7 +1010,7 @@ const Store = (() => {
     const { a, name } = pending, st = S();
     st.scans = [...st.scans, ...a.fresh].sort((x, y) => x.ts - y.ts);
     for (const n of Engine.deriveEmployees(st.scans)) if (!st.employees.some(e => e.pin === n.pin)) st.employees.push(n);
-    applySettings(SET.payload);                                       // shared schedules / overtime for these people
+    applySettings(SET.payload);
     if (useFile) a.conflicts.forEach(k => delete st.overrides[k]);
     st.files.push({ name, at: new Date().toISOString(), rows: a.total, added: a.fresh.length, repeated: a.repeated });
     pending = null;
@@ -1066,7 +1110,6 @@ const Store = (() => {
   const SUMW = SUMS.reduce((t, s) => t + s.w, 0);
   const sumStyle = i => `right:${SUMS.slice(i + 1).reduce((t, s) => t + s.w, 0)}px;width:${SUMS[i].w}px;min-width:${SUMS[i].w}px`;
   const emptyTotals = () => ({ WORK: 0, OFF: 0, LEAVE: 0, SICK: 0, ABSENT: 0, work: 0, ot: 0 });
-  /** Totals for one person's rows. Work day uses the "each date only once" rule. */
   function personTotals(rows) {
     const t = emptyTotals(), wd = Engine.countWorkDays(rows);
     for (const r of rows) {
@@ -1088,6 +1131,7 @@ const Store = (() => {
 
   function wireDash() {
     $('#dbRefresh').onclick = async () => { await loadSettings(); loadDb(); };
+    $('#dbFix').onclick = saveCorrected;
     ['fFrom', 'fTo'].forEach(id => $('#' + id).onchange = () => {
       F.from = $('#fFrom').value; F.to = $('#fTo').value;
       if (F.from && F.to && F.from > F.to) [F.from, F.to] = [F.to, F.from];
@@ -1108,7 +1152,7 @@ const Store = (() => {
     const p = DB.people.find(x => x.pin === pin) || { pin, name: e?.name || pin, dept: e?.dept || '' };
     return { ...p, dept: e?.dept || p.dept, shiftIds: e ? e.shiftIds : [], otOn: e ? e.otOn : undefined, local: !!e, show: e ? e.show !== false : true };
   };
-  let CREDIT = {};                                       // "pin|date" -> work days this saved day counts for
+  let CREDIT = {};
   function drawDash() {
     drawDbBar();
     if (!DB.rows.length) {
@@ -1182,6 +1226,7 @@ const Store = (() => {
       + (sess.length ? sess.map(s => `<div class="l"><span>In – out</span><b>${line(s, date, false)}</b></div>`).join('') : `<div class="l"><span>No in / out time</span></div>`)
       + `<div class="l"><span>Working (total)</span><b>${hrs(r.working_minutes)}</b></div>`
       + (r.overtime_minutes ? `<div class="l o"><span>of which overtime</span><b>${hrs(r.overtime_minutes)}</b></div>` : '')
+      + (r._stale ? `<div class="l o"><span>Stored before</span><span>${hrs(r._w)} · OT ${hrs(r._o)} (old settings)</span></div>` : '')
       + (crTxt ? `<div class="l"><span>Work days</span><span>${crTxt}</span></div>` : '')
       + (r.note ? `<div class="l"><span>Note</span><span>${esc(r.note)}</span></div>` : '')
       + `<div class="l"><span>Saved</span><span>${new Date(r.saved_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</span></div>`;
